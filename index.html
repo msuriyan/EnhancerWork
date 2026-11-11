@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EnhancerWork</title>
+<style>
+  :root { --bg:#f7f7f5; --card:#fff; --ink:#1d1d1b; --muted:#5f5f5a; --line:#e2e2dc; --accent:#1f6f8b; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#161716; --card:#1f201f; --ink:#ececea; --muted:#a3a39d; --line:#33342f; --accent:#6fb7d0; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:1000px; margin:0 auto; padding:56px 24px 40px; }
+  h1 { font-size:2rem; margin:0 0 8px; letter-spacing:-0.01em; }
+  .lead { color:var(--muted); max-width:680px; margin:0 0 36px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px; display:flex; flex-direction:column; }
+  .num { font-size:.8rem; color:var(--muted); font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
+  .card h2 { font-size:1.2rem; margin:4px 0 8px; }
+  .card p { margin:0 0 18px; color:var(--muted); font-size:.95rem; flex:1; }
+  .actions { display:flex; gap:10px; flex-wrap:wrap; }
+  a.btn { text-decoration:none; padding:8px 14px; border-radius:8px; font-size:.9rem; font-weight:600; border:1px solid var(--accent); }
+  a.primary { background:var(--accent); color:#fff; }
+  @media (prefers-color-scheme: dark) { a.primary { color:#0d1b20; } }
+  a.secondary { color:var(--accent); }
+  footer { margin-top:40px; color:var(--muted); font-size:.85rem; }
+  footer a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>EnhancerWork</h1>
+  <p class="lead">Four single-file, in-browser tools for making publication figures from comparative and functional genomics data. Nothing to install, and your files are read only by your own browser and never uploaded.</p>
+
+  <div class="grid">
+    <div class="card">
+      <span class="num">Tool 1</span>
+      <h2>Cactus Alignment Viewer</h2>
+      <p>Cactus whole-genome alignments (bigMaf/MAF) drawn alongside the species phylogeny, ATAC-seq signal and peaks, BED regions and GFF3/GTF gene models.</p>
+      <div class="actions">
+        <a class="btn primary" href="cactus-alignment-viewer/">Open</a>
+        <a class="btn secondary" href="https://github.com/msuriyan/EnhancerWork/tree/main/cactus-alignment-viewer">Docs</a>
+      </div>
+    </div>
+    <div class="card">
+      <span class="num">Tool 2</span>
+      <h2>ATAC Comparative Panels</h2>
+      <p>Multi-species ATAC-seq panels (bigWig + peaks) with tissue overlays, plus homologous-peak tracing across species through a Cactus alignment.</p>
+      <div class="actions">
+        <a class="btn primary" href="atac-comparative-panels/atac_comparative_panels.html">Open</a>
+        <a class="btn secondary" href="https://github.com/msuriyan/EnhancerWork/tree/main/atac-comparative-panels">Docs</a>
+      </div>
+    </div>
+    <div class="card">
+      <span class="num">Tool 3</span>
+      <h2>TFBS Enhancer Map</h2>
+      <p>Strand-aware, TRANSFAC-style maps of predicted transcription-factor binding sites (JASPAR, FIMO…) on enhancers and cis-regulatory elements.</p>
+      <div class="actions">
+        <a class="btn primary" href="tfbs-enhancer-map/">Open</a>
+        <a class="btn secondary" href="https://github.com/msuriyan/EnhancerWork/tree/main/tfbs-enhancer-map">Docs</a>
+      </div>
+    </div>
+    <div class="card">
+      <span class="num">Tool 4</span>
+      <h2>GenoView</h2>
+      <p>An IGV/UCSC-style browser for your genome, BAM, bigWig and BED files, with indel/SV detection and CRISPR edit analysis in individual crispants.</p>
+      <div class="actions">
+        <a class="btn primary" href="genoview/">Open</a>
+        <a class="btn secondary" href="https://github.com/msuriyan/EnhancerWork/tree/main/genoview">Docs</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Suriya (msuriyan) · MIT License · <a href="https://github.com/msuriyan/EnhancerWork">Source on GitHub</a> ·
+    <a href="https://github.com/msuriyan/EnhancerWork/releases/latest">Download all tools</a>
+  </footer>
+</main>
+</body>
+</html>

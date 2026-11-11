@@ -1,0 +1,19 @@
+{
+  "name": "genoview",
+  "version": "1.0.0",
+  "description": "GenoView \u2013 offline IGV-like genome browser with indel/SV detection and CRISPR crispant edit analysis, built into a single HTML file",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "keywords": [],
+  "author": "msuriyan",
+  "license": "MIT",
+  "dependencies": {
+    "@gmod/bam": "^10.1.0",
+    "esbuild": "^0.28.2",
+    "generic-filehandle2": "^2.5.1",
+    "igv": "^3.8.10"
+  },
+  "private": true
+}

@@ -1,0 +1,7 @@
+TF	Gene_name	Motif_input_name	Color	Plus_strand	Minus_strand	Unstranded	Total_sites	CREs_with_TF	CREs_shown	enhA	enhB	enhC
+BCD	bicoid	bicoid	#4668AF	1	3	0	4	3	3	2	1	1
+ZLD	zelda	zelda	#E7AF5C	2	3	0	5	3	3	2	2	1
+HB	hunchback	hunchback	#419E68	1	3	0	4	3	3	2	1	1
+KR	Kruppel	Kruppel	#C480BD	3	0	0	3	3	3	1	1	1
+TWI	twist	twist	#7AC4F5	2	2	0	4	3	3	1	2	1
+DL	dorsal	dorsal	#A85A1E	2	1	0	3	3	3	1	1	1

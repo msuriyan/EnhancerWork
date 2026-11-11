@@ -1,0 +1,9 @@
+##gff-version 3
+chr2	sim	gene	100001	103600	.	+	.	ID=geneE;Name=GeneE
+chr2	sim	mRNA	100001	103600	.	+	.	ID=txE;Parent=geneE;Name=GeneE-201
+chr2	sim	exon	100001	100400	.	+	.	ID=exE0;Parent=txE
+chr2	sim	CDS	100001	100400	.	+	0	Parent=txE
+chr2	sim	exon	101201	101500	.	+	.	ID=exE1;Parent=txE
+chr2	sim	CDS	101201	101500	.	+	0	Parent=txE
+chr2	sim	exon	103001	103600	.	+	.	ID=exE2;Parent=txE
+chr2	sim	CDS	103001	103600	.	+	0	Parent=txE

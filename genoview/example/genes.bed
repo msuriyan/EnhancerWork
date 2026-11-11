@@ -1,0 +1,5 @@
+chr1	20000	40000	GeneA	0	+
+chr1	55000	70000	GeneB	0	-
+chr1	145000	160000	GeneC	0	+
+chr1	215000	230000	GeneD	0	+
+chr2	99500	104000	GeneE	0	+

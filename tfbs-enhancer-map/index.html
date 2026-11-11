@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TFBS Enhancer Map</title>
+<style>
+:root{--bd:#d9d8d2;--mut:#6b6a63;--acc:#2a78d6;--bg2:#f7f6f3}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font:13px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#222;background:#fff}
+#app{display:flex;height:100vh}
+#side{width:400px;min-width:300px;border-right:1px solid var(--bd);overflow-y:auto;background:var(--bg2);padding:0 0 40px}
+#side header{padding:14px 16px 6px}
+#side h1{font-size:17px;margin:0 0 2px}
+#side header p{margin:0;color:var(--mut);font-size:12px}
+details{border-top:1px solid var(--bd);padding:0 16px}
+summary{cursor:pointer;font-weight:600;padding:10px 0;user-select:none}
+details[open] summary{padding-bottom:6px}
+details>div.body{padding-bottom:12px}
+label.blk{display:block;font-weight:600;margin:10px 0 3px}
+.hint{font-weight:400;color:var(--mut);font-size:11.5px}
+textarea{width:100%;font:11.5px/1.35 ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--bd);border-radius:6px;padding:6px;resize:vertical;background:#fff;white-space:pre;overflow:auto}
+input[type=file]{font-size:11.5px;max-width:100%}
+button{font:inherit;border:1px solid var(--bd);background:#fff;border-radius:6px;padding:5px 10px;cursor:pointer}
+button:hover{border-color:#aaa}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.row input[type=text]{flex:1;min-width:0;width:80px;padding:4px 6px;border:1px solid var(--bd);border-radius:5px;font:inherit}
+h4{margin:12px 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
+.opt{display:grid;grid-template-columns:1fr 150px;gap:8px;align-items:center;margin:4px 0}
+.opt label{font-size:12.5px}
+.opt input[type=number],.opt input[type=text],.opt select{width:100%;font:inherit;padding:3px 5px;border:1px solid var(--bd);border-radius:5px;background:#fff}
+.opt input[type=color]{width:46px;height:24px;padding:0;border:1px solid var(--bd);border-radius:4px;background:#fff}
+.opt input[type=checkbox]{justify-self:start;width:16px;height:16px}
+#msg{font-size:12px;margin-top:8px}
+#msg .ok{color:#0f7a55}#msg .warn{color:#a8521f}#msg .err{color:#c0392b}
+.list{max-height:340px;overflow:auto;border:1px solid var(--bd);border-radius:6px;background:#fff}
+.li{display:grid;align-items:center;gap:6px;padding:3px 6px;border-bottom:1px solid #eee;font-size:12px}
+.li:last-child{border-bottom:0}
+#tfList .li{grid-template-columns:18px 30px 1fr 58px}
+#tfList .li.off{opacity:.4}
+#enhList .li{grid-template-columns:18px 1fr 62px 44px 46px}
+#enhList .li input[type=number]{width:100%;font:inherit;font-size:11.5px;border:1px solid var(--bd);border-radius:4px;padding:2px 3px}
+.li input[type=text]{width:100%;font:inherit;border:1px solid transparent;border-radius:4px;padding:2px 4px;background:transparent}
+.li input[type=text]:hover,.li input[type=text]:focus{border-color:var(--bd);background:#fff}
+.li input.sub{font-size:11px;color:var(--mut)}
+.li input[type=color]{width:28px;height:20px;padding:0;border:1px solid var(--bd);border-radius:3px}
+.li .n{color:var(--mut);text-align:right;font-variant-numeric:tabular-nums}
+.li .orig{color:var(--mut);font-size:10.5px;display:block;padding-left:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .mv button{padding:0 5px;font-size:11px}
+.small{font-size:11.5px;color:var(--mut)}
+.rename{border:1px dashed var(--bd);border-radius:6px;padding:6px 8px;margin:8px 0;background:#fff}
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+#bar{display:flex;gap:10px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--bd);flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--bd);border-radius:7px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:5px 12px}
+.seg button.on{background:#222;color:#fff}
+#stage{flex:1;overflow:auto;background:#eceae5;padding:20px}
+#fig{display:inline-block;line-height:0}
+#fig svg{display:block;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.14);margin:0 0 18px}
+#fig.paged svg{box-shadow:0 2px 10px rgba(0,0,0,.22)}
+#fig svg{user-select:none;-webkit-user-select:none}
+#fig svg [data-ek]{cursor:text}
+#fig svg [data-tog]{cursor:pointer}
+#fig svg [data-ek]:hover{text-decoration:underline dotted}
+#tip{position:fixed;pointer-events:none;background:#1e1e1d;color:#f0efec;font-size:12px;line-height:1.45;padding:7px 9px;border-radius:6px;display:none;max-width:340px;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+#tip b{color:#fff}
+#tip .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+#ied{position:fixed;display:none;z-index:15;font:14px system-ui,sans-serif;padding:4px 6px;border:2px solid var(--acc);border-radius:5px;box-shadow:0 2px 10px rgba(0,0,0,.25);background:#fff}
+#dropHint{position:fixed;inset:0;background:rgba(42,120,214,.15);border:3px dashed #2a78d6;display:none;align-items:center;justify-content:center;font-size:22px;color:#1c5cab;z-index:30;pointer-events:none}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:20}
+#modal .box{background:#fff;border-radius:10px;padding:16px;max-width:90vw;max-height:90vh;overflow:auto;width:760px}
+#modal img{max-width:100%;border:1px solid var(--bd);display:block;margin:8px 0;background:repeating-conic-gradient(#eee 0 25%,#fff 0 50%) 0 0/16px 16px}
+#modal textarea{height:160px}
+.empty{padding:60px 40px;color:var(--mut);font-size:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div id="app">
+<aside id="side">
+  <header>
+    <h1>TFBS Enhancer Map</h1>
+    <p>Plot predicted TF binding sites on CREs with strand orientation. Runs entirely in your browser. <b>Double-click any text in the figure to edit it.</b></p>
+  </header>
+
+  <details open><summary>1 · Data &amp; session</summary><div class="body">
+    <div class="rename" style="border-style:solid;background:#eef4fc">
+      <div class="small"><b>Load files</b>: pick or drag in any mix of TFBS table, BED, FASTA, or a saved session (.json). Each file is sorted automatically.</div>
+      <div class="row"><input type="file" id="fAny" multiple></div>
+      <div class="row"><button class="pri" id="bSave2">Save session</button><button id="bLoad2">Load session…</button><input type="file" id="fSession2" accept=".json" style="display:none"></div>
+      <div class="small" id="autoNote">The session saves itself in this browser, and the last session reopens when you open the tool again.</div>
+    </div>
+    <label class="blk">TFBS table <span class="hint">TSV/CSV · 7-column, JASPAR scan or FIMO output</span></label>
+    <input type="file" id="fSites" accept=".tsv,.txt,.csv,.tab,.out">
+    <textarea id="tSites" rows="8" spellcheck="false" placeholder="Enhancer&#9;EnhStart&#9;EnhEnd&#9;TF_motif&#9;SiteStart&#9;SiteEnd&#9;Strand&#10;enhA&#9;1000001&#9;1000800&#9;bicoid&#9;1000121&#9;1000126&#9;+"></textarea>
+    <label class="blk">CREs (BED) <span class="hint">optional · chr start end name score strand</span></label>
+    <input type="file" id="fBed" accept=".bed,.txt,.tsv">
+    <textarea id="tBed" rows="3" spellcheck="false" placeholder="chr2L&#9;1000000&#9;1000800&#9;enhA&#9;0&#9;+"></textarea>
+    <label class="blk">Sequences (FASTA) <span class="hint">optional · header = CRE name or chr:start-end</span></label>
+    <input type="file" id="fFa" accept=".fa,.fasta,.fna,.txt">
+    <textarea id="tFa" rows="3" spellcheck="false" placeholder="&gt;enhA&#10;ACGT..."></textarea>
+    <div class="row"><button id="bExample">Load example</button><button id="bClear">Clear all</button></div>
+    <div id="optData"></div>
+    <div id="msg"></div>
+  </div></details>
+
+  <details open><summary>2 · Transcription factors</summary><div class="body">
+    <div class="rename" style="border-style:solid"><div class="small"><b>Colors</b>: choosing a palette recolors every TF in list order. Change any single TF with its color box below.</div><div id="optPalette"></div><div id="palSw" style="display:flex;gap:3px;flex-wrap:wrap;margin:4px 0"></div><div id="palWarn" class="small" style="color:#a8521f"></div></div>
+    <div class="rename" style="border-style:solid"><div class="small"><b>Shared TFs</b>: show only TFs found in several of the shown CREs (either strand counts)</div><div id="optShared"></div><div id="sharedInfo" class="small"></div></div>
+    <div class="row"><input type="text" id="tfFilter" placeholder="Filter list…">
+      <button id="tfAll">All</button><button id="tfNone">None</button><button id="tfRecolor" title="Reassign palette colors in list order">Recolor</button></div>
+    <div id="tfList" class="list"></div>
+    <div class="rename" style="border-style:solid"><div class="small"><b>TF names</b>: long names are shortened using this list (e.g. araucan → ara, Hormone receptor-like in 39 → Hr39). Edit, add or delete lines as you like. The list is saved with the session.</div>
+      <div class="opt"><label>TF name style</label><select id="abCase"><option value="upper">ALL CAPS (bab → BAB)</option><option value="protein">First letter capital (bab → Bab)</option><option value="asis">As in the gene symbol (bab)</option></select></div>
+      <div class="row"><label class="small"><input type="checkbox" id="abOn"> Use abbreviation list</label><label class="small"><input type="checkbox" id="abStrip"> Strip database IDs</label></div>
+      <textarea id="abText" rows="6" spellcheck="false"></textarea>
+      <div class="row"><button id="abApply">Apply list</button><button id="abDefault">Restore default list</button><span class="small" id="abInfo"></span></div></div>
+    <div class="rename"><div class="small"><b>Rename all TFs</b>: find text and replace it (leave Replace empty to delete)</div>
+      <div class="row"><input type="text" id="tfFind" placeholder="Find, e.g. _MA"><input type="text" id="tfRepl" placeholder="Replace with"></div>
+      <div class="row"><label class="small"><input type="checkbox" id="tfRx"> regex</label><button id="tfApply">Apply</button><button id="tfReset">Reset names</button></div></div>
+    <div class="small">Numbers: sites · CREs containing the TF (of those shown). Faded = hidden by the shared filter. Tick boxes show or hide a TF. Click its legend swatch in the figure to hide it too.</div>
+  </div></details>
+
+  <details open><summary>3 · CREs (enhancers)</summary><div class="body">
+    <div class="row small"><span style="flex:1">show · name / subtitle · length (bp, editable) · flip · order</span><button id="enAll">All</button><button id="enNone">None</button></div>
+    <div id="enhList" class="list"></div>
+    <div class="rename"><div class="small"><b>Rename all CREs</b>: find text and replace it</div>
+      <div class="row"><input type="text" id="enFind" placeholder="Find"><input type="text" id="enRepl" placeholder="Replace with"></div>
+      <div class="row"><label class="small"><input type="checkbox" id="enRx"> regex</label><button id="enApply">Apply</button><button id="enReset">Reset names</button></div></div>
+    <div class="small">The subtitle is the line under the name (coordinates · length by default). Clear it to go back to the default.</div>
+  </div></details>
+
+  <details><summary>4 · Layout</summary><div class="body" id="optLayout"></div></details>
+  <details><summary>5 · CRE names &amp; backbone line</summary><div class="body" id="optCre"></div></details>
+  <details><summary>6 · Binding-site boxes</summary><div class="body" id="optGlyph"></div></details>
+  <details><summary>7 · Site labels</summary><div class="body" id="optLabel"></div></details>
+  <details><summary>8 · Ruler / scale</summary><div class="body" id="optAxis"></div></details>
+  <details><summary>9 · Legend &amp; title</summary><div class="body" id="optLegend"></div></details>
+  <details><summary>10 · Font &amp; background</summary><div class="body" id="optFont"></div></details>
+  <details><summary>11 · Sequence view</summary><div class="body" id="optSeq"></div></details>
+
+  <details open><summary>Page setup &amp; export</summary><div class="body">
+    <div id="optPage"></div>
+    <div class="small" style="margin:4px 0 8px">The preview shows exactly what gets exported. With a page size set, the figure is scaled to fit the page. For many CREs, use <b>CRE columns</b> or <b>CREs per page</b> to keep text readable.</div>
+    <div class="opt"><label>PNG resolution</label><select id="pngDpi"><option value="150">150 dpi</option><option value="300" selected>300 dpi</option><option value="600">600 dpi</option></select></div>
+    <div class="row"><button class="pri" id="bPdf">Download PDF</button><button class="pri" id="bSvg">Download SVG</button><button class="pri" id="bPng">Download PNG</button><button id="bCopy">Copy SVG</button></div>
+    <h4>Each CRE as a separate file</h4>
+    <div id="optSep"></div>
+    <div class="row"><button class="pri" id="bEach">Download each CRE (ZIP)</button><span class="small" id="eachInfo"></span></div>
+    <div class="small">One file per shown CRE, named after its label, with its own legend. All files arrive in a single ZIP.</div>
+    <h4>Legend &amp; TF list on their own</h4>
+    <div id="optLegDl"></div>
+    <div class="row"><span class="small" style="width:62px">Legend</span><button data-leg="pdf">PDF</button><button data-leg="svg">SVG</button><button data-leg="png">PNG</button></div>
+    <div class="row"><span class="small" style="width:62px">TF table</span><button data-tbl="pdf">PDF</button><button data-tbl="svg">SVG</button><button data-tbl="png">PNG</button><button data-tbl="tsv">TSV (Excel)</button></div>
+    <div class="small">Both include only the TFs in the current figure's legend, so hidden TFs and the shared-TF filter are respected. The table lists each TF's color, label, original motif name, sites on + and − strands, how many CREs contain it, and (optionally) counts per CRE.</div>
+    <h4>Other</h4>
+    <div class="row"><button id="bTsv">Export site coords (TSV)</button><button id="bResetStyle">Reset styles</button></div>
+    <div class="row"><button id="bSave">Save session</button><label class="small">Load session <input type="file" id="fSession" accept=".json"></label></div>
+    <div class="small">PDF and SVG are vector (sharp at any zoom) with text kept as text, so they stay editable in Illustrator / Inkscape. PDF uses Helvetica, Times or Courier, whichever is closest to your chosen font. Multi-page layouts give one PDF with several pages, or one SVG/PNG per page.</div>
+  </div></details>
+</aside>
+
+<main>
+  <div id="bar">
+    <div class="seg"><button data-view="map" class="on">Map view</button><button data-view="seq">Sequence view</button></div>
+    <label class="small">Zoom <input type="range" id="zoom" min="0.3" max="3" step="0.05" value="1" style="vertical-align:middle"></label><button id="bFit" title="Fit page to window">Fit</button>
+    <span id="stats" class="small"></span>
+    <span id="pageInfo" class="small"></span>
+  </div>
+  <div id="stage"><div id="fig"></div></div>
+</main>
+</div>
+<div id="tip"></div>
+<div id="dropHint">Drop TFBS table / BED / FASTA / session files</div>
+<input id="ied" type="text">
+<div id="modal"><div class="box">
+  <div style="display:flex;justify-content:space-between;align-items:center"><b id="mTitle">Export</b><button id="mClose">Close</button></div>
+  <p class="small" id="mNote"></p>
+  <img id="mImg" alt="">
+  <textarea id="mText" spellcheck="false"></textarea>
+  <div class="row"><button id="mCopy">Copy text</button></div>
+</div></div>
+
+<script>
+"use strict";
+/* ================= constants & options ================= */
+/* Palettes. "soft" was tuned for this tool: worst pair of all 8 colours stays >= 9 dE (OKLab x100) under
+   normal, deuteranopia, protanopia and tritanopia simulation. */
+const PALETTES={
+ soft:{name:'Soft colorblind-safe (8)',cols:['#4668AF','#E7AF5C','#419E68','#C480BD','#7AC4F5','#A85A1E','#EDE0A0','#6F6168']},
+ okabe:{name:'Okabe–Ito (7)',cols:['#E69F00','#56B4E9','#009E73','#F0E442','#0072B2','#D55E00','#CC79A7']},
+ tolMuted:{name:'Paul Tol muted (9)',cols:['#CC6677','#332288','#DDCC77','#117733','#88CCEE','#882255','#44AA99','#999933','#AA4499']},
+ tolLight:{name:'Paul Tol light / pastel (8)',cols:['#77AADD','#EE8866','#EEDD88','#FFAABB','#99DDFF','#44BB99','#BBCC33','#AAAA00']},
+ custom:{name:'Custom (paste colors below)',cols:[]}
+};
+function hexRgb(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];}
+const rgbHex=a=>'#'+a.map(v=>Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join('');
+const shade=(h,f)=>rgbHex(hexRgb(h).map(v=>v*(1-f)));
+const tint=(h,f)=>rgbHex(hexRgb(h).map(v=>v+(255-v)*f));
+function basePal(){if(opt.palette==='custom'){const c=(opt.customPal.match(/#?[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b/g)||[]).map(x=>x[0]==='#'?x:'#'+x);if(c.length)return c;}const c=(PALETTES[opt.palette]||{}).cols;return c&&c.length?c:PALETTES.soft.cols;}
+function palColor(i){const b=basePal();if(i<b.length)return b[i];const k=Math.floor(i/b.length),c=b[i%b.length];return k%2?shade(c,0.38):tint(c,0.45);}
+const FONTS=[['Arial, Helvetica, sans-serif','Arial / Helvetica'],['Helvetica, Arial, sans-serif','Helvetica'],['"Times New Roman", Times, serif','Times New Roman'],['Georgia, serif','Georgia'],['Verdana, sans-serif','Verdana'],['Calibri, "Segoe UI", sans-serif','Calibri'],['"Courier New", Courier, monospace','Courier New']];
+const MONO=[['"Courier New", Courier, monospace','Courier New'],['Menlo, Consolas, monospace','Menlo / Consolas'],['"DejaVu Sans Mono", monospace','DejaVu Sans Mono'],['monospace','System monospace']];
+const DEF={
+ legDlLayout:'figure',tblPerCre:true,tblTitle:'',
+ tfCase:'upper',
+ abbrevOn:true,abbrevText:'',
+ sepFormat:'pdf',sepPage:'tight',sepSameScale:true,
+ page:'A4',orient:'auto',marginMM:12,pageScale:'fit',pageVAlign:'top',cols:1,colGap:40,perPage:0,
+ sharedMode:'any',sharedN:2,palette:'soft',customPal:'',
+ view:'map',coord:'1',sitePos:'auto',orientByBed:true,minScore:'',maxP:'',
+ // layout
+ width:900,scaleMode:'common',lengthSrc:'coords',layout:'split',rowGap:26,laneGap:3,sideGap:3,pad:14,
+ // CRE names + backbone
+ showName:true,namePos:'left',nameSize:13,nameBold:true,nameItalic:false,nameColor:'#222222',
+ showCoords:true,coordMode:'full',coordSize:10,coordColor:'#777777',
+ bbStyle:'line',bbH:2.5,bbColor:'#4a4a48',bbFill:'#ededea',bbStrokeW:0.8,
+ // sites
+ glyph:'box',glyphH:12,minGlyphW:4,glyphRadius:0,glyphOpacity:1,glyphStrokeMode:'darker',glyphStroke:'#ffffff',glyphStrokeW:0.8,
+ // site labels
+ siteLabels:'tf',labelSize:9,labelBold:false,tfItalic:false,labelRot:'0',labelColor:'tfDark',labelCustomColor:'#222222',labelInsideColor:'#ffffff',labelGap:2,stripId:true,
+ // ruler
+ axis:'each',axisLabels:'relative',axisSize:9,axisColor:'#666666',axisW:0.6,tickLen:3,ticks:5,axisUnit:true,axisGap:5,
+ // legend & title
+ legend:true,legendPos:'bottom',legendTitle:'',legendCols:0,legendSize:11,legendColor:'#222222',swatchW:16,swatchH:10,legendCounts:false,legendOrder:'appearance',strandKey:true,
+ title:'',titleSize:16,titleBold:true,titleColor:'#222222',
+ // font & bg
+ font:FONTS[0][0],fontCustom:'',bg:'#ffffff',transparent:false,
+ // sequence view
+ seqLineLen:60,seqSize:11,seqFont:MONO[0][0],seqColorText:'#333333',seqCase:'sites',seqColor:true,seqBold:true,seqBarH:5,seqNumbers:true
+};
+let opt=Object.assign({},DEF);
+const N_=(a,b,c)=>[a,b,c];
+const SPEC={
+ optData:[
+  ['coord','Coordinate system','sel',[['1','1-based, inclusive (JASPAR, FIMO, TRANSFAC)'],['0','0-based, half-open (BED)']]],
+  ['sitePos','Site positions are','sel',[['auto','Auto-detect'],['genomic','Genomic (same as CRE)'],['relative','Relative to CRE start']]],
+  ['orientByBed','Flip CREs on − strand (BED col 6)','chk'],
+  ['minScore','Min score (if column present)','num',N_(null,null,'any')],
+  ['maxP','Max p-value (if column present)','num',N_(0,1,'any')]],
+ optPage:[
+  ['page','Page size','sel',[['A4','A4'],['Letter','US Letter'],['A5','A5'],['A3','A3'],['Legal','US Legal'],['none','None (figure size)']]],
+  ['orient','Orientation','sel',[['auto','Auto (best fit)'],['portrait','Portrait'],['landscape','Landscape']]],
+  ['marginMM','Margin (mm)','num',N_(0,60,1)],
+  ['pageScale','Scaling','sel',[['fit','Fit to page (shrink or enlarge)'],['shrink','Shrink only if too big'],['actual','Actual size (1 px = 0.75 pt)']]],
+  ['pageVAlign','Vertical position','sel',[['top','Top of page'],['center','Centered']]],
+  ['cols','CRE columns (map view)','num',N_(1,6,1)],
+  ['colGap','Space between columns','num',N_(0,300,1)],
+  ['perPage','CREs per page (0 = all on one)','num',N_(0,500,1)]],
+ optSep:[
+  ['sepFormat','File format','sel',[['pdf','PDF (vector)'],['svg','SVG (vector)'],['png','PNG (uses dpi above)']]],
+  ['sepPage','Page','sel',[['tight','Tight around each CRE'],['page','Use page setup above (e.g. A4)']]],
+  ['sepSameScale','Same bp scale in every file','chk']],
+ optLegDl:[
+  ['legDlLayout','Legend layout','sel',[['figure','Same as in figure'],['column','Single column']]],
+  ['tblPerCre','TF table: add a column per CRE','chk'],
+  ['tblTitle','TF table title (optional)','txt']],
+ optPalette:[
+  ['palette','Palette','sel',Object.entries(PALETTES).map(([k,v])=>[k,v.name])],
+  ['customPal','Custom colors (hex, any separator)','txt']],
+ optShared:[
+  ['sharedMode','Show TFs present in','sel',[['any','Any CRE (show all)'],['all','All shown CREs'],['atleast','At least N shown CREs']]],
+  ['sharedN','N (for "at least N")','num',N_(1,100,1)]],
+ optLayout:[
+  ['width','Figure width (px)','num',N_(300,5000,10)],
+  ['lengthSrc','CRE length from','sel',[['coords','Coordinates / sequence'],['name','Number in CRE name (enh1250 → 1250 bp)'],['max','Larger of the two']]],
+  ['scaleMode','Horizontal scale','sel',[['common','Proportional to CRE length'],['fit','Stretch every CRE to full width']]],
+  ['layout','Strand layout','sel',[['split','+ above line, − below line'],['above','All sites above the line'],['onLine','All sites on the line']]],
+  ['rowGap','Space between CREs','num',N_(0,300,1)],
+  ['sideGap','Space site ↔ line','num',N_(0,40,0.5)],
+  ['laneGap','Space between stacked sites','num',N_(0,40,0.5)],
+  ['pad','Outer margin','num',N_(0,100,1)]],
+ optCre:[
+  ['h','CRE name'],
+  ['showName','Show CRE names','chk'],
+  ['namePos','Name position','sel',[['left','Left of the line'],['above','Above the line']]],
+  ['nameSize','Name font size','num',N_(4,60,0.5)],
+  ['nameBold','Bold','chk'],
+  ['nameItalic','Italic','chk'],
+  ['nameColor','Name color','col'],
+  ['h','Subtitle (coordinates / length)'],
+  ['showCoords','Show subtitle','chk'],
+  ['coordMode','Default subtitle','sel',[['full','chr:start–end · length'],['coords','chr:start–end'],['length','Length only']]],
+  ['coordSize','Subtitle font size','num',N_(4,40,0.5)],
+  ['coordColor','Subtitle color','col'],
+  ['h','Backbone line'],
+  ['bbStyle','Style','sel',[['line','Line'],['box','Box']]],
+  ['bbH','Thickness / box height','num',N_(0.25,60,0.25)],
+  ['bbColor','Line / outline color','col'],
+  ['bbFill','Box fill','col'],
+  ['bbStrokeW','Box outline width','num',N_(0,10,0.1)]],
+ optGlyph:[
+  ['glyph','Shape','sel',[['box','Box (strand shown by above/below)'],['arrow','Arrow box'],['triangle','Triangle']]],
+  ['glyphH','Box height','num',N_(1,80,0.5)],
+  ['minGlyphW','Minimum width (px)','num',N_(0.5,40,0.5)],
+  ['glyphRadius','Corner rounding','num',N_(0,20,0.5)],
+  ['glyphOpacity','Fill opacity','num',N_(0.05,1,0.05)],
+  ['glyphStrokeMode','Outline','sel',[['darker','Darker shade of each color'],['custom','Single color'],['none','None']]],
+  ['glyphStrokeW','Outline width','num',N_(0,10,0.1)],
+  ['glyphStroke','Single outline color','col']],
+ optLabel:[
+  ['siteLabels','Labels','sel',[['tf','TF name next to box'],['inside','Inside the box (if it fits)'],['none','None (legend only)']]],
+  ['labelSize','Font size','num',N_(3,40,0.5)],
+  ['labelBold','Bold','chk'],
+  ['tfItalic','Italic TF names (also legend)','chk'],
+  ['labelRot','Rotation','sel',[['0','0°'],['30','30°'],['45','45°'],['60','60°'],['90','90°']]],
+  ['labelGap','Space label ↔ box','num',N_(0,20,0.5)],
+  ['labelColor','Color','sel',[['tfDark','TF color, darker (easier to read)'],['tf','Same as TF'],['custom','Single color']]],
+  ['labelCustomColor','Single color','col'],
+  ['labelInsideColor','Inside-label color','col'],
+  ['stripId','Strip database IDs/tags (Mad_MA0535.1, ara_SANGER_10_FBgn… → Mad, ara)','chk']],
+ optAxis:[
+  ['axis','Ruler','sel',[['each','Ruler under each CRE'],['scalebar','One scale bar'],['none','None']]],
+  ['axisLabels','Numbers','sel',[['relative','Relative (bp from CRE start)'],['genomic','Genomic coordinates']]],
+  ['axisSize','Font size','num',N_(3,40,0.5)],
+  ['axisColor','Color','col'],
+  ['axisW','Line width','num',N_(0.1,10,0.1)],
+  ['tickLen','Tick length','num',N_(0,20,0.5)],
+  ['ticks','Approx. number of ticks','num',N_(2,30,1)],
+  ['axisGap','Space ruler ↔ sites','num',N_(0,60,0.5)],
+  ['axisUnit','Add "bp" to last tick','chk']],
+ optLegend:[
+  ['h','Legend'],
+  ['legend','Show legend','chk'],
+  ['legendPos','Position','sel',[['bottom','Bottom'],['top','Top'],['right','Right']]],
+  ['legendTitle','Legend title','txt'],
+  ['legendCols','Columns (0 = auto)','num',N_(0,40,1)],
+  ['legendSize','Font size','num',N_(3,40,0.5)],
+  ['legendColor','Text color','col'],
+  ['swatchW','Swatch width','num',N_(2,80,1)],
+  ['swatchH','Swatch height','num',N_(2,60,1)],
+  ['legendCounts','Show site counts','chk'],
+  ['legendOrder','Order','sel',[['appearance','As in TF list'],['alpha','Alphabetical'],['count','Most sites first']]],
+  ['strandKey','Show strand key','chk'],
+  ['h','Figure title'],
+  ['title','Title text','txt'],
+  ['titleSize','Font size','num',N_(4,80,0.5)],
+  ['titleBold','Bold','chk'],
+  ['titleColor','Color','col']],
+ optFont:[
+  ['font','Font family (all text)','sel',FONTS],
+  ['fontCustom','…or type any installed font','txt'],
+  ['bg','Background color','col'],
+  ['transparent','Transparent background on export','chk']],
+ optSeq:[
+  ['seqLineLen','Bases per line','num',N_(10,300,5)],
+  ['seqSize','Sequence font size','num',N_(4,40,0.5)],
+  ['seqFont','Sequence font','sel',MONO],
+  ['seqColorText','Base color (outside sites)','col'],
+  ['seqCase','Letter case','sel',[['sites','Sites UPPER, rest lower'],['upper','All upper'],['asis','As given']]],
+  ['seqColor','Color site letters by TF (darker shade)','chk'],
+  ['seqBold','Bold site letters','chk'],
+  ['seqBarH','Site bar height','num',N_(1,30,0.5)],
+  ['seqNumbers','Line position numbers','chk']]
+};
+
+/* ================= state & utils ================= */
+const S={rows:[],enh:[],E:new Map(),sites:[],tfCfg:{},tfOrder:[],enhCfg:{},enhOrder:[],palIdx:0};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const f2=n=>Math.round(n*100)/100;
+const commas=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const mctx=document.createElement('canvas').getContext('2d');
+function tw(t,size,fam,bold,italic){mctx.font=`${italic?'italic':'normal'} ${bold?'bold':'normal'} ${size}px ${fam}`;return mctx.measureText(String(t)).width;}
+const FAM=()=>opt.fontCustom.trim()||opt.font;
+const fontAttrs=(size,bold,italic,color)=>` font-size="${size}"${bold?' font-weight="bold"':''}${italic?' font-style="italic"':''} fill="${color}"`;
+
+/* ================= parsing ================= */
+const norm=s=>String(s).toLowerCase().replace(/[^a-z0-9]/g,'');
+function splitLine(l){if(l.includes('\t'))return l.split('\t').map(s=>s.trim());if(l.includes(','))return l.split(',').map(s=>s.trim());return l.trim().split(/\s+/);}
+function nStrand(x){x=String(x==null?'':x).trim().toLowerCase();
+ if(['-','-1','minus','reverse','r','rev','c','complement'].includes(x))return '-';
+ if(['+','1','+1','plus','forward','f','fwd'].includes(x))return '+';return '.';}
+const num=x=>{if(x==null||x==='')return NaN;return +String(x).replace(/,/g,'');};
+function parseSites(text){
+ const warn=[];let lines=text.split(/\r?\n/).filter(l=>l.trim());
+ if(!lines.length)return{rows:[],warn};
+ const f=splitLine(lines[0].replace(/^#\s*/,''));
+ const isHeader=f.some(x=>/[a-z]/i.test(x))&&!f.some(x=>/^-?\d+$/.test(x));
+ let col;
+ if(isHeader){
+  const H=f.map(norm);const find=c=>{for(const k of c){const i=H.indexOf(k);if(i>=0)return i;}return -1;};
+  col={enh:find(['enhancer','enh','cre','enhancername','crename','enhancerid','creid','sequencename','sequenceid','seqname','seqid','region','regionname','peak','peakname','element']),
+   chr:find(['chr','chrom','chromosome','seqnames']),
+   es:find(['enhstart','enhancerstart','crestart','regionstart','peakstart','elementstart']),
+   ee:find(['enhend','enhancerend','creend','regionend','peakend','elementend']),
+   tfn:find(['tfmotif','tf','tfname','motifaltid','name','factor','motifname','patternname','motif','tfbs','transcriptionfactor']),
+   tfi:find(['matrixid','motifid','jasparid','matrix','accession']),
+   s:find(['sitestart','start','tfbsstart','motifstart','begin','from']),
+   e:find(['siteend','end','stop','tfbsend','motifend','to']),
+   st:find(['strand','sitestrand','orientation','ori']),
+   sc:find(['score','relscore','relativescore','matrixscore','simscore']),
+   p:find(['pvalue','pval']),
+   seq:find(['matchedsequence','sitesequence','predictedsitesequence','sequence','site','match'])};
+  if(col.tfn===col.tfi)col.tfi=-1;
+  lines=lines.slice(1);
+  if(col.enh<0&&col.chr>=0&&col.es<0)col.enh=col.chr;
+  if(col.enh<0)warn.push('No CRE/sequence-name column found — using "CRE1".');
+  if(col.s<0||col.e<0){warn.push('Could not find site start/end columns.');return{rows:[],warn,err:true};}
+ }else{
+  if(f.length<7){warn.push('Without a header row the table needs 7 columns: Enhancer EnhStart EnhEnd TF_motif SiteStart SiteEnd Strand.');return{rows:[],warn,err:true};}
+  col={enh:0,chr:-1,es:1,ee:2,tfn:3,tfi:-1,s:4,e:5,st:6,sc:f.length>7&&!isNaN(num(f[7]))?7:-1,p:-1,seq:-1};
+ }
+ const rows=[];let bad=0;
+ for(const l of lines){
+  if(/^\s*#/.test(l))continue;
+  const c=splitLine(l);const g=i=>i>=0?c[i]:undefined;
+  let s=num(g(col.s)),e=num(g(col.e));if(isNaN(s)||isNaN(e)){bad++;continue;}
+  let strand=col.st>=0?nStrand(g(col.st)):'+';
+  if(s>e){[s,e]=[e,s];if(strand==='.'||col.st<0)strand='-';}
+  const name=g(col.tfn)||'',id=g(col.tfi)||'';
+  const tf=name&&id?(name.includes(id)?name:name+'_'+id):(name||id||'TF');
+  rows.push({enh:col.enh>=0?(g(col.enh)||'CRE1'):'CRE1',chr:col.chr>=0?g(col.chr):undefined,es:num(g(col.es)),ee:num(g(col.ee)),
+   tf,s,e,strand,score:num(g(col.sc)),p:num(g(col.p)),seq:g(col.seq)||''});
+ }
+ if(bad)warn.push(bad+' line(s) skipped (non-numeric positions).');
+ return{rows,warn};
+}
+function parseBed(text){const out=[];for(const l of text.split(/\r?\n/)){if(!l.trim()||/^(track|browser|#)/.test(l))continue;
+ const c=l.trim().split(/\t|\s+/);const s=num(c[1]),e=num(c[2]);if(isNaN(s)||isNaN(e))continue;
+ out.push({chr:c[0],s0:s,e,name:c[3]&&c[3]!=='.'?c[3]:`${c[0]}:${s}-${e}`,strand:nStrand(c[5])});}return out;}
+function parseFasta(text){const out=[];let cur=null;for(const l of text.split(/\r?\n/)){
+ if(l.startsWith('>')){const h=l.slice(1).trim();cur={name:h.split(/\s+/)[0],header:h,seq:''};out.push(cur);}
+ else if(cur)cur.seq+=l.replace(/[^A-Za-z\-]/g,'');}
+ for(const r of out){const m=r.name.match(/^(.+?):(\d[\d,]*)-(\d[\d,]*)/);if(m){r.chr=m[1];r.cs=num(m[2]);r.ce=num(m[3]);}}return out;}
+
+/* ================= model ================= */
+function build(){
+ const msgs=[];const c1=opt.coord==='1';
+ const P=parseSites($('tSites').value);msgs.push(...P.warn.map(w=>['warn',w]));
+ const bed=parseBed($('tBed').value),fa=parseFasta($('tFa').value);
+ const E=new Map();
+ const getE=id=>{if(!E.has(id))E.set(id,{id,chr:undefined,gS:NaN,gE:NaN,seq:'',bedStrand:'.',maxEnd:0});return E.get(id);};
+ for(const r of P.rows){const e=getE(r.enh);if(r.chr&&!e.chr)e.chr=r.chr;if(!isNaN(r.es)&&isNaN(e.gS)){e.gS=r.es;e.gE=r.ee;}}
+ for(const b of bed){
+  const bs=c1?b.s0+1:b.s0;let e=E.get(b.name);
+  if(!e)for(const x of E.values()){if(!isNaN(x.gS)&&Math.abs(x.gS-bs)<=1&&Math.abs(x.gE-b.e)<=1&&(!x.chr||x.chr===b.chr)){e=x;break;}}
+  if(!e)e=getE(b.name);
+  e.chr=e.chr||b.chr;if(isNaN(e.gS)){e.gS=bs;e.gE=b.e;}e.bedStrand=b.strand;
+ }
+ for(const r of fa){
+  let e=E.get(r.name)||E.get(r.header);
+  if(!e&&r.cs!=null){for(const x of E.values()){if(!isNaN(x.gS)&&Math.abs(x.gE-r.ce)<=1&&Math.abs(x.gS-r.cs)<=1){e=x;break;}}}
+  if(!e){e=getE(r.name);if(r.cs!=null){e.chr=r.chr;const zero=(r.ce-r.cs)===r.seq.length;
+    e.gS=zero?(c1?r.cs+1:r.cs):(c1?r.cs:r.cs-1);e.gE=r.ce;}}
+  e.seq=r.seq;
+ }
+ const sites=[];let clipped=0;
+ for(const r of P.rows){
+  const e=E.get(r.enh);const hasG=!isNaN(e.gS);
+  let genomic=opt.sitePos==='genomic'||(opt.sitePos==='auto'&&hasG&&r.s>=e.gS-1&&r.e<=e.gE+1&&e.gS>0);
+  if(genomic&&!hasG)genomic=false;
+  let a,b;
+  if(genomic){a=r.s-e.gS;b=c1?r.e-e.gS+1:r.e-e.gS;}else{a=c1?r.s-1:r.s;b=r.e;}
+  e.maxEnd=Math.max(e.maxEnd,b);
+  sites.push({enh:r.enh,tf:r.tf,a,b,strand:r.strand,score:r.score,p:r.p,seq:r.seq,gs:r.s,ge:r.e});
+ }
+ for(const e of E.values()){if(!S.enhCfg[e.id])S.enhCfg[e.id]={label:'',sub:'',len:'',visible:true,flip:opt.orientByBed&&e.bedStrand==='-'};}
+ const nameMis=[];
+ for(const e of E.values()){
+  if(!isNaN(e.gS))e.L=c1?e.gE-e.gS+1:e.gE-e.gS;else e.L=e.seq?e.seq.length:e.maxEnd;
+  if(e.seq&&e.seq.length!==e.L){msgs.push(['warn',`${e.id}: sequence length ${e.seq.length} ≠ CRE length ${e.L} (check coordinate system).`]);e.L=Math.max(e.L,e.seq.length);}
+  e.Lc=e.L;const nm=e.id.match(/(\d+)(?!.*\d)/);e.Ln=nm?+nm[1]:NaN;
+  if(opt.lengthSrc==='name'&&e.Ln>0)e.L=e.Ln;else if(opt.lengthSrc==='max'&&e.Ln>0)e.L=Math.max(e.L,e.Ln);
+  const ov=+S.enhCfg[e.id].len;if(ov>0)e.L=ov;
+  if(e.Ln>0&&e.Lc>0&&e.Ln!==e.Lc&&opt.lengthSrc==='coords'&&!(ov>0))nameMis.push(`${e.id} (${commas(e.Lc)} bp)`);
+  if(e.maxEnd>e.L)msgs.push(['warn',`${e.id}: some sites extend past its length (${commas(e.L)} bp).`]);
+  if(!(e.L>0))e.L=1;
+ }
+ if(nameMis.length&&nameMis.length===E.size)msgs.push(['warn',`Lengths come from coordinates and differ from the numbers in the names: ${nameMis.slice(0,4).join(', ')}${nameMis.length>4?'…':''}. To use the name numbers, set Layout → “CRE length from” to “Number in CRE name”.`]);
+ let outside=0;for(const s of sites){const e=E.get(s.enh);s.out=s.a>=e.L||s.b<=0;if(s.out){outside++;continue;}if(s.a<0||s.b>e.L)clipped++;s.a=Math.max(0,s.a);s.b=Math.min(e.L,Math.max(s.b,s.a+1));}
+ for(const e of E.values()){if(S.enhCfg[e.id].len==null)S.enhCfg[e.id].len='';if(!S.enhOrder.includes(e.id))S.enhOrder.push(e.id);}
+ S.enhOrder=S.enhOrder.filter(id=>E.has(id));
+ for(const s of sites){if(!S.tfCfg[s.tf]){S.tfCfg[s.tf]={color:palColor(S.palIdx),label:'',visible:true};S.palIdx++;}if(!S.tfOrder.includes(s.tf))S.tfOrder.push(s.tf);}
+ const used=new Set(sites.map(s=>s.tf));S.tfOrder=S.tfOrder.filter(t=>used.has(t));
+ S.enh=[...E.values()];S.E=E;S.sites=sites;
+ if(P.rows.length)msgs.unshift(['ok',`${sites.length} sites · ${used.size} TFs · ${E.size} CREs${fa.length?` · ${fa.length} sequences`:''}${bed.length?` · ${bed.length} BED regions`:''}`]);
+ else if(!P.err&&!E.size)msgs.unshift(['warn','Paste or load a TFBS table to begin (or “Load example”).']);
+ if(clipped)msgs.push(['warn',`${clipped} site(s) ran past their CRE end and were trimmed.`]);if(outside)msgs.push(['warn',`${outside} site(s) lie beyond their CRE's length and are not drawn.`]);
+ if(P.err)msgs.unshift(['err','Could not read the TFBS table.']);
+ $('msg').innerHTML=msgs.map(([k,t])=>`<div class="${k}">${esc(t)}</div>`).join('');
+ drawTfList();drawEnhList();render();abCount();
+}
+
+/* ================= display helpers ================= */
+const stripRe=/[_\s|]+[A-Za-z]{1,4}\d{3,}(\.\d+)?$/;
+const DB_TAGS=/[_\s|.]+(SANGER|SOLEXA|Cell|NAR|NBT|FlyReg|SELEX|HTSELEX|B1H|bsg|BDTNP|ChIP|PBM|Bergman|iDMMPMM|OnTheFly|FlyFactorSurvey|homer|HUMAN|MOUSE|DROME)\b.*$/i;
+function stripDb(n){let o=n,prev;do{prev=o;
+  o=o.replace(/[_\s|.]+FBgn\d+$/i,'').replace(DB_TAGS,'').replace(/^(MA|PB|PF|PH|PL|CN|UN|POL)\d{4}\.\d+[_\s|:]+/,'').replace(stripRe,'').replace(/_\d+$/,'');}while(o!==prev&&o);return o||n;}
+const ABBR_V1=`# full name (or any spelling) = short label. One per line; edit freely.
+# Matching ignores case, spaces, hyphens and underscores.
+araucan = ara
+caupolican = caup
+mirror = mirr
+Hormone receptor-like in 39 = Hr39
+Hormone receptor 39 = Hr39
+hr-39 = Hr39
+Optix = Optix
+pangolin = pan
+dTCF = pan
+senseless = sens
+squeeze = sqz
+vismay = vis
+achintya = achi
+engrailed = en
+invected = inv
+Distal-less = Dll
+Ultrabithorax = Ubx
+abdominal A = abd-A
+Abdominal B = Abd-B
+Antennapedia = Antp
+Sex combs reduced = Scr
+Deformed = Dfd
+labial = lab
+proboscipedia = pb
+homothorax = hth
+extradenticle = exd
+tinman = tin
+pannier = pnr
+Mothers against dpp = Mad
+Medea = Med
+brinker = brk
+schnurri = shn
+Trithorax-like = Trl
+GAGA factor = Trl
+zelda = zld
+vielfaltig = zld
+grainy head = grh
+bicoid = bcd
+hunchback = hb
+Kruppel = Kr
+knirps = kni
+giant = gt
+tailless = tll
+huckebein = hkb
+caudal = cad
+fushi tarazu = ftz
+even skipped = eve
+hairy = h
+runt = run
+odd paired = opa
+odd skipped = odd
+paired = prd
+gooseberry = gsb
+sloppy paired 1 = slp1
+orthodenticle = oc
+ocelliless = oc
+empty spiracles = ems
+buttonhead = btd
+twist = twi
+snail = sna
+dorsal = dl
+eyeless = ey
+twin of eyeless = toy
+sine oculis = so
+dachshund = dac
+apterous = ap
+scalloped = sd
+Suppressor of Hairless = Su(H)
+forkhead = fkh
+serpent = srp
+pointed = pnt
+anterior open = aop
+tramtrack = ttk
+broad = br
+Ecdysone receptor = EcR
+ultraspiracle = usp
+Kruppel homolog 1 = Kr-h1
+lame duck = lmd
+ladybird early = lbe
+zeste = z`;
+const ABBR_DEFAULT=`# full name (or any spelling) = short label. One per line; edit freely.
+# Matching ignores case, spaces, hyphens and underscores.
+araucan = ara
+caupolican = caup
+mirror = mirr
+Hormone receptor-like in 39 = Hr39
+Hormone receptor 39 = Hr39
+hr-39 = Hr39
+Optix = Optix
+pangolin = pan
+dTCF = pan
+senseless = sens
+squeeze = sqz
+vismay = vis
+achintya = achi
+engrailed = en
+invected = inv
+Distal-less = Dll
+Ultrabithorax = Ubx
+abdominal A = abd-A
+Abdominal B = Abd-B
+Antennapedia = Antp
+Sex combs reduced = Scr
+Deformed = Dfd
+labial = lab
+proboscipedia = pb
+homothorax = hth
+extradenticle = exd
+tinman = tin
+pannier = pnr
+Mothers against dpp = Mad
+Medea = Med
+brinker = brk
+schnurri = shn
+Trithorax-like = Trl
+GAGA factor = Trl
+zelda = zld
+vielfaltig = zld
+grainy head = grh
+bicoid = bcd
+hunchback = hb
+Kruppel = Kr
+knirps = kni
+giant = gt
+tailless = tll
+huckebein = hkb
+caudal = cad
+fushi tarazu = ftz
+even skipped = eve
+hairy = h
+runt = run
+odd paired = opa
+odd skipped = odd
+paired = prd
+gooseberry = gsb
+sloppy paired 1 = slp1
+orthodenticle = oc
+ocelliless = oc
+empty spiracles = ems
+buttonhead = btd
+twist = twi
+snail = sna
+dorsal = dl
+eyeless = ey
+twin of eyeless = toy
+sine oculis = so
+dachshund = dac
+apterous = ap
+scalloped = sd
+Suppressor of Hairless = Su(H)
+forkhead = fkh
+serpent = srp
+pointed = pnt
+anterior open = aop
+tramtrack = ttk
+broad = br
+Ecdysone receptor = EcR
+ultraspiracle = usp
+Kruppel homolog 1 = Kr-h1
+lame duck = lmd
+ladybird early = lbe
+zeste = z
+bric-a-brac = bab
+bric a brac 1 = bab1
+bric a brac 2 = bab2
+BarH1 = B-H1
+BarH2 = B-H2
+bagpipe = bap
+brachyenteron = byn
+Chorion factor 2 = Cf2
+Clock = Clk
+clockwork orange = cwo
+cycle = cyc
+Dichaete = D
+Drop = Dr
+doublesex = dsx
+fruitless = fru
+daughterless = da
+achaete = ac
+scute = sc
+asense = ase
+lethal of scute = l(1)sc
+atonal = ato
+absent MD neurons and olfactory sensilla = amos
+single-minded = sim
+tango = tgo
+spineless = ss
+taiman = tai
+kayak = kay
+Jun-related antigen = Jra
+Cyclic-AMP response element binding protein A = CrebA
+Heat shock factor = Hsf
+Signal-transducer and activator of transcription protein at 92E = Stat92E
+Dorsal-related immunity factor = Dif
+Relish = Rel
+glial cells missing = gcm
+gooseberry-neuro = gsb-n
+knirps-like = knrl
+ladybird late = lbl
+Myocyte enhancer factor 2 = Mef2
+nubbin = nub
+pou domain motif 3 = pdm3
+pleiohomeotic = pho
+reversed polarity = repo
+slow border cells = slbo
+sloppy paired 2 = slp2
+SoxNeuro = SoxN
+Sp1 = Sp1
+suppressor of Hairy wing = su(Hw)
+unc-4 = unc-4
+ventral nervous system defective = vnd
+intermediate neuroblasts defective = ind
+zerknullt = zen
+Zn finger homeodomain 1 = zfh1
+Arrowhead = Awh
+orthopedia = otp
+Retinal homeobox = Rx
+twin of eyegone = toe
+eyegone = eyg
+distal antenna = dan
+distal antenna related = danr
+spalt major = salm
+spalt-related = salr
+bifid = bi
+optomotor-blind = bi
+Dorsocross1 = Doc1
+Dorsocross2 = Doc2
+Dorsocross3 = Doc3
+tailup = tup
+cap-n-collar = cnc
+Hepatocyte nuclear factor 4 = Hnf4
+seven up = svp
+Ecdysone-induced protein 74EF = Eip74EF
+Ecdysone-induced protein 75B = Eip75B
+Ecdysone-induced protein 78C = Eip78C
+Ecdysone-induced protein 93F = Eip93F
+Hormone receptor 3 = Hr3
+Hormone receptor 4 = Hr4
+Hormone receptor 38 = Hr38
+Hormone receptor 78 = Hr78
+Hormone receptor 83 = Hr83
+Hormone receptor 96 = Hr96
+ftz transcription factor 1 = ftz-f1
+dissatisfaction = dsf
+eagle = eg
+cryptocephal = crc
+abrupt = ab
+longitudinals lacking = lola
+chronologically inappropriate morphogenesis = chinmo
+ventral veins lacking = vvl
+abnormal chemosensory jump 6 = acj6
+shavenbaby = svb
+ovo = ovo
+Lim1 = Lim1
+Pituitary homeobox 1 = Ptx1
+Hand = Hand
+Max = Max
+Mnt = Mnt
+Myc = Myc
+diminutive = Myc
+DNA replication-related element factor = Dref
+Deformed epidermal autoregulatory factor 1 = Deaf1
+Ets at 21C = Ets21C
+E2F transcription factor 1 = E2f1
+Enhancer of split m8 = E(spl)m8-HLH
+deadpan = dpn
+hairy/E(spl)-related with YRPW motif = Hey
+NK7.1 = NK7.1
+H2.0 = H2.0
+Visual system homeobox 1 = Vsx1
+lethal (3) malignant brain tumor = l(3)mbt
+Fork head = fkh
+Ultraspiracle = usp
+Optix = Optix
+Mef2 = Mef2
+Stat92E = Stat92E`;
+let abbrCache={src:null,map:null,full:null};
+function parseAbbr(txt){const out=[];for(const l of String(txt||'').split(/\r?\n/)){if(/^\s*#/.test(l)||!l.includes('='))continue;const i=l.lastIndexOf('=');const f=l.slice(0,i).trim(),v=l.slice(i+1).trim();if(f&&v)out.push([f,v]);}return out;}
+function abbrBuild(){if(abbrCache.src===opt.abbrevText)return abbrCache;
+ const user=parseAbbr(opt.abbrevText),base=parseAbbr(ABBR_DEFAULT),map=new Map(),full=new Map();
+ for(const [f,v] of base)map.set(norm(f),v);for(const [f,v] of user)map.set(norm(f),v);   // user lines override built-in
+ for(const pass of [0,1])for(const [f,v] of user.concat(base)){const k=norm(v);if(full.has(k))continue;const same=norm(f)===k;if(pass===0&&same)continue;full.set(k,f);}
+ abbrCache={src:opt.abbrevText,map,full};return abbrCache;}
+const abbrMap=()=>abbrBuild().map;
+function caseTf(n){if(opt.tfCase==='upper')return n.toUpperCase();if(opt.tfCase==='protein')return n.charAt(0).toUpperCase()+n.slice(1);return n;}
+function shortTf(tf){let n=opt.stripId?stripDb(tf):tf;
+ if(opt.abbrevOn){const m=abbrMap();const hit=m.get(norm(tf))||m.get(norm(n))||m.get(norm(n.split(/[_|]/)[0]))||m.get(norm(tf.split(/[_|]/)[0]));if(hit)n=hit;}
+ return n;}
+function geneName(tf){const F=abbrBuild().full;const c=S.tfCfg[tf];const tries=[shortTf(tf),stripDb(tf),tf,c&&c.label];
+ for(const t of tries){if(!t)continue;const g=F.get(norm(t));if(g)return g;}return '';}
+function autoTf(tf){return caseTf(shortTf(tf));}
+function tfLabel(tf){const c=S.tfCfg[tf];return c&&c.label?c.label:autoTf(tf);}
+function enhLabel(id){const c=S.enhCfg[id];return c&&c.label?c.label:id;}
+function autoSub(e){const len=commas(e.L)+' bp';const co=!isNaN(e.gS)?`${e.chr?e.chr+':':''}${commas(e.gS)}–${commas(e.L===e.Lc?e.gE:e.gS+e.L-(opt.coord==='1'?1:0))}`:'';
+ let t=opt.coordMode==='length'||!co?len:opt.coordMode==='coords'?co:co+' · '+len;if(S.enhCfg[e.id].flip)t+=' (rev)';return t;}
+function subText(e){const c=S.enhCfg[e.id];return c.sub?c.sub:autoSub(e);}
+function passFilter(s){if(opt.minScore!==''&&!isNaN(s.score)&&s.score<+opt.minScore)return false;if(opt.maxP!==''&&!isNaN(s.p)&&s.p>+opt.maxP)return false;return true;}
+function visEnh(){return S.enhOrder.map(id=>S.E.get(id)).filter(e=>e&&S.enhCfg[e.id].visible);}
+function computeShared(){const enhs=visEnh();S.creCnt={};
+ for(const e of enhs){const seen=new Set();for(const s of S.sites)if(s.enh===e.id&&!s.out&&passFilter(s)&&S.tfCfg[s.tf].visible)seen.add(s.tf);for(const t of seen)S.creCnt[t]=(S.creCnt[t]||0)+1;}
+ S.nVis=enhs.length;S.shared=null;S.sharedThr=0;
+ if(opt.sharedMode==='any'||!enhs.length)return;
+ const thr=opt.sharedMode==='all'?enhs.length:Math.max(1,Math.min(+opt.sharedN||1,enhs.length));S.sharedThr=thr;
+ S.shared=new Set(Object.keys(S.creCnt).filter(t=>S.creCnt[t]>=thr));}
+function dispSites(e,includeHidden){const flip=S.enhCfg[e.id].flip;const out=[];
+ S.sites.forEach((s,i)=>{if(s.enh!==e.id||s.out||!passFilter(s))return;if(!includeHidden&&(!S.tfCfg[s.tf].visible||(S.shared&&!S.shared.has(s.tf))))return;
+  out.push({i,s,tf:s.tf,da:flip?e.L-s.b:s.a,db:flip?e.L-s.a:s.b,str:flip?(s.strand==='+'?'-':s.strand==='-'?'+':'.'):s.strand});});
+ return out;}
+function gpos(e,i){const flip=S.enhCfg[e.id].flip;if(isNaN(e.gS))return i+1;return flip?e.gS+(e.L-1-i):e.gS+i;}
+function niceStep(x){const p=Math.pow(10,Math.floor(Math.log10(x)));const m=x/p;return (m<1.5?1:m<3.5?2:m<7.5?5:10)*p;}
+const rc=s=>s.split('').reverse().map(c=>({A:'T',T:'A',G:'C',C:'G',a:'t',t:'a',g:'c',c:'g'}[c]||c)).join('');
+const labelCol=tfc=>opt.labelColor==='tf'?tfc:opt.labelColor==='tfDark'?shade(tfc,0.32):opt.labelCustomColor;
+
+/* site glyph: box (default), arrow, triangle */
+function glyphSvg(x0,x1,y,h,str,color,attrs,shape){
+ shape=shape||opt.glyph;const r=f2,sw=+opt.glyphStrokeW;
+ const fo=+opt.glyphOpacity<1?` fill-opacity="${opt.glyphOpacity}"`:'';
+ const sc=opt.glyphStrokeMode==='darker'?shade(color,0.3):opt.glyphStroke;
+ const st=sw>0&&opt.glyphStrokeMode!=='none'?` stroke="${sc}" stroke-width="${sw}" stroke-linejoin="round"`:'';
+ if(shape==='box'||str==='.'){const rad=Math.min(+opt.glyphRadius,h/2,(x1-x0)/2);
+  return `<rect x="${r(x0)}" y="${r(y)}" width="${r(x1-x0)}" height="${r(h)}"${rad>0?` rx="${r(rad)}"`:''} fill="${color}"${fo}${st}${attrs||''}/>`;}
+ let d;const w=x1-x0;
+ if(shape==='triangle')d=str==='+'?`M${r(x0)} ${r(y)}L${r(x1)} ${r(y+h/2)}L${r(x0)} ${r(y+h)}Z`:`M${r(x1)} ${r(y)}L${r(x0)} ${r(y+h/2)}L${r(x1)} ${r(y+h)}Z`;
+ else{const t=Math.min(h*0.55,w*0.6);d=str==='+'?`M${r(x0)} ${r(y)}H${r(x1-t)}L${r(x1)} ${r(y+h/2)}L${r(x1-t)} ${r(y+h)}H${r(x0)}Z`:`M${r(x1)} ${r(y)}H${r(x0+t)}L${r(x0)} ${r(y+h/2)}L${r(x0+t)} ${r(y+h)}H${r(x1)}Z`;}
+ return `<path d="${d}" fill="${color}"${fo}${st}${attrs||''}/>`;
+}
+function pack(items,gap){items.sort((a,b)=>a.l-b.l);const ends=[];for(const it of items){let k=ends.findIndex(e=>e+gap<=it.l);if(k<0){k=ends.length;ends.push(-1e9);}ends[k]=it.r;it.lane=k;}return ends.length;}
+
+/* ================= legend ================= */
+function legendItems(enhs){
+ const cnt={};for(const e of enhs)for(const d of dispSites(e,false))cnt[d.tf]=(cnt[d.tf]||0)+1;
+ let tfs=S.tfOrder.filter(t=>S.tfCfg[t].visible&&cnt[t]);
+ if(opt.legendOrder==='alpha')tfs.sort((a,b)=>tfLabel(a).localeCompare(tfLabel(b)));
+ if(opt.legendOrder==='count')tfs.sort((a,b)=>cnt[b]-cnt[a]);
+ return{tfs,cnt};
+}
+function drawLegend(x,y,maxW,vertical,enhs){
+ const fam=FAM(),fs=+opt.legendSize,{tfs,cnt}=legendItems(enhs);
+ const items=tfs.map(t=>({tf:t,text:tfLabel(t),cnt:opt.legendCounts?` (${cnt[t]})`:'',color:S.tfCfg[t].color,italic:opt.tfItalic}));
+ if(!items.length)return{svg:'',w:0,h:0};
+ const directional=opt.glyph!=='box';
+ if(opt.strandKey){
+  if(opt.layout==='split')items.push({key:'up',text:'+ strand'},{key:'down',text:'− strand'});
+  else if(directional)items.push({key:'+',text:'+ strand'},{key:'-',text:'− strand'});
+ }
+ const sw=+opt.swatchW,sh=+opt.swatchH,rowH=Math.max(fs*1.45,sh+4,opt.strandKey&&opt.layout==='split'?sh+8:0);
+ const iw=items.map(it=>sw+6+tw(it.text+(it.cnt||''),fs,fam,false,it.italic)+18);const maxIw=Math.max(...iw);
+ let o='<g class="legend">';let ty=y;
+ if(opt.legendTitle){o+=`<text x="${f2(x)}" y="${f2(y+fs)}"${fontAttrs(fs,true,false,opt.legendColor)} data-ek="legendTitle">${esc(opt.legendTitle)}</text>`;ty=y+fs*1.6;}
+ let cols=+opt.legendCols||(vertical?1:Math.max(1,Math.floor(maxW/maxIw)));cols=Math.min(cols,items.length);
+ const rows=Math.ceil(items.length/cols);
+ const colW=[];for(let c=0;c<cols;c++){let m=0;for(let r=0;r<rows;r++){const k=vertical?c*rows+r:r*cols+c;if(k<items.length)m=Math.max(m,iw[k]);}colW.push(m);}
+ items.forEach((it,k)=>{const r=vertical?k%rows:Math.floor(k/cols),c=vertical?Math.floor(k/rows):k%cols;
+  const ix=x+colW.slice(0,c).reduce((a,b)=>a+b,0),iy=ty+r*rowH,mid=iy+rowH/2;
+  if(it.key==='up'||it.key==='down'){const bh=Math.min(sh,rowH/2-1.5);
+   o+=`<line x1="${f2(ix)}" x2="${f2(ix+sw)}" y1="${f2(mid)}" y2="${f2(mid)}" stroke="${opt.bbColor}" stroke-width="${Math.min(+opt.bbH,2)}"/>`;
+   o+=glyphSvg(ix+sw*0.25,ix+sw*0.75,it.key==='up'?mid-1.5-bh:mid+1.5,bh,it.key==='up'?'+':'-','#8a8a86','');}
+  else if(it.key)o+=glyphSvg(ix,ix+sw,mid-sh/2,sh,it.key,'#8a8a86','');
+  else o+=`<g data-tog="${esc(it.tf)}">`+glyphSvg(ix,ix+sw,mid-sh/2,sh,'+',it.color,'')+'</g>';
+  o+=`<text x="${f2(ix+sw+6)}" y="${f2(mid)}" dominant-baseline="central"${fontAttrs(fs,false,false,opt.legendColor)}${it.tf?` data-ek="tf" data-ev="${esc(it.tf)}"`:''}>`+
+   (it.italic?`<tspan font-style="italic">${esc(it.text)}</tspan>`:esc(it.text))+esc(it.cnt||'')+'</text>';});
+ o+='</g>';
+ return{svg:o,w:colW.reduce((a,b)=>a+b,0),h:rows*rowH+(ty-y)};
+}
+function drawTitle(out,x,y){if(!opt.title)return y;y+=+opt.titleSize;
+ out.push(`<text x="${f2(x)}" y="${f2(y)}"${fontAttrs(opt.titleSize,opt.titleBold,false,opt.titleColor)} data-ek="title">${esc(opt.title)}</text>`);return y+10;}
+
+/* ================= map view ================= */
+function renderMap(enhs,maxLAll){
+ if(!enhs||!enhs.length)return null;
+ const fam=FAM(),out=[],P=+opt.pad,allE=visEnh();
+ const cols=Math.max(1,Math.min(+opt.cols||1,enhs.length)),cg=+opt.colGap;
+ const nameLeft=opt.showName&&opt.namePos==='left',nameAbove=opt.showName&&opt.namePos==='above';
+ const nameW=nameLeft?Math.max(...allE.map(e=>Math.max(tw(enhLabel(e.id),+opt.nameSize,fam,opt.nameBold,opt.nameItalic),opt.showCoords?tw(subText(e),+opt.coordSize,fam):0))):0;
+ const mL=nameLeft?P+nameW+12:P+4,mR=Math.max(P+10,opt.siteLabels==='tf'?36:20),W=+opt.width;
+ const colW=(W-(cols-1)*cg)/cols;
+ const avail=Math.max(50,colW-mL-mR),fullAvail=Math.max(50,W-mL-mR);const maxL=maxLAll||Math.max(...enhs.map(e=>e.L));const pxC=avail/maxL;
+ const fsL=+opt.labelSize,rot=+opt.labelRot*Math.PI/180,gh=+opt.glyphH,bbH=+opt.bbH,sg=+opt.sideGap,lg=+opt.laneGap,lgap=+opt.labelGap;
+ const bbHalf=opt.bbStyle==='box'?bbH/2+(+opt.bbStrokeW)/2:bbH/2;
+ let y=drawTitle(out,P,P);
+ if(opt.legend&&opt.legendPos==='top'){const L=drawLegend(mL,y,fullAvail,false,enhs);out.push(L.svg);y+=L.h+(L.h?14:0);}
+ const yStart=y;const perCol=Math.ceil(enhs.length/cols);let yMax=y;
+ for(let ci=0;ci<cols;ci++){const colList=enhs.slice(ci*perCol,(ci+1)*perCol);if(!colList.length)continue;
+ if(ci)out.push(`<g transform="translate(${f2(ci*(colW+cg))},0)">`);y=yStart;
+ for(const e of colList){
+  const px=opt.scaleMode==='common'?pxC:avail/e.L;const X=p=>mL+p*px;
+  if(nameAbove){y+=+opt.nameSize;const nw=tw(enhLabel(e.id),+opt.nameSize,fam,opt.nameBold,opt.nameItalic);
+   out.push(`<text x="${f2(mL)}" y="${f2(y)}"${fontAttrs(opt.nameSize,opt.nameBold,opt.nameItalic,opt.nameColor)} data-ek="enh" data-ev="${esc(e.id)}">${esc(enhLabel(e.id))}</text>`);
+   if(opt.showCoords)out.push(`<text x="${f2(mL+nw+8)}" y="${f2(y)}"${fontAttrs(opt.coordSize,false,false,opt.coordColor)} data-ek="sub" data-ev="${esc(e.id)}">${esc(subText(e))}</text>`);
+   y+=6;}
+  const ds=dispSites(e,false);const items=[];let maxLW=0;
+  for(const d of ds){
+   let x0=X(d.da),x1=X(d.db);if(x1-x0<+opt.minGlyphW){const c=(x0+x1)/2;x0=c-opt.minGlyphW/2;x1=c+opt.minGlyphW/2;}
+   const cx=(x0+x1)/2,txt=tfLabel(d.tf),w=tw(txt,fsL,fam,opt.labelBold,opt.tfItalic);
+   let l=x0,r=x1,inside=false;
+   if(opt.siteLabels==='tf'){maxLW=Math.max(maxLW,w);
+    if(rot===0){l=Math.min(x0,cx-w/2);r=Math.max(x1,cx+w/2);}else{l=Math.min(x0,cx-fsL*0.6);r=Math.max(x1,cx+w*Math.cos(rot)+fsL*0.6);}}
+   else if(opt.siteLabels==='inside')inside=w+4<=(x1-x0)-(opt.glyph==='box'?0:gh*0.4);
+   items.push({d,x0,x1,cx,txt,w,l,r,inside,side:opt.layout==='split'&&d.str==='-'?'bot':'top'});
+  }
+  const labelH=opt.siteLabels==='tf'&&items.length?(rot===0?fsL*1.05:maxLW*Math.sin(rot)+fsL*Math.cos(rot))+lgap:0;
+  const laneH=gh+labelH+lg;
+  const top=items.filter(i=>i.side==='top'),bot=items.filter(i=>i.side==='bot');
+  const nT=pack(top,2),nB=pack(bot,2);
+  const nameH=nameLeft?(+opt.nameSize+(opt.showCoords?+opt.coordSize+3:0)):0;
+  let bbRel,bottomRel;
+  if(opt.layout==='onLine'){bbRel=nT?labelH+(nT-1)*laneH+gh/2:Math.max(gh/2,bbHalf);bottomRel=bbRel+Math.max(gh/2,bbHalf);}
+  else{bbRel=(nT?nT*laneH-lg+sg:0)+bbHalf;bottomRel=bbRel+bbHalf+(nB?sg+nB*laneH-lg:0);}
+  const off=Math.max(0,nameH/2-bbRel);const bbY=y+bbRel+off;let rowB=Math.max(y+bottomRel+off,bbY+nameH/2);
+  if(nameLeft){const ny=bbY-nameH/2;
+   out.push(`<text x="${f2(mL-12)}" y="${f2(ny+ +opt.nameSize*0.82)}" text-anchor="end"${fontAttrs(opt.nameSize,opt.nameBold,opt.nameItalic,opt.nameColor)} data-ek="enh" data-ev="${esc(e.id)}">${esc(enhLabel(e.id))}</text>`);
+   if(opt.showCoords)out.push(`<text x="${f2(mL-12)}" y="${f2(ny+ +opt.nameSize+3+ +opt.coordSize*0.82)}" text-anchor="end"${fontAttrs(opt.coordSize,false,false,opt.coordColor)} data-ek="sub" data-ev="${esc(e.id)}">${esc(subText(e))}</text>`);}
+  if(opt.bbStyle==='box')out.push(`<rect x="${f2(X(0))}" y="${f2(bbY-bbH/2)}" width="${f2(e.L*px)}" height="${f2(bbH)}" fill="${opt.bbFill}"${+opt.bbStrokeW>0?` stroke="${opt.bbColor}" stroke-width="${opt.bbStrokeW}"`:''}/>`);
+  else out.push(`<line x1="${f2(X(0))}" x2="${f2(X(e.L))}" y1="${f2(bbY)}" y2="${f2(bbY)}" stroke="${opt.bbColor}" stroke-width="${bbH}"/>`);
+  out.push('<g class="sites">');
+  for(const it of items){
+   const col=S.tfCfg[it.d.tf].color;let gy,ly,below=false;
+   if(opt.layout==='onLine'){gy=bbY-gh/2-it.lane*laneH;ly=gy-lgap;}
+   else if(it.side==='top'){gy=bbY-bbHalf-sg-gh-it.lane*laneH;ly=gy-lgap;}
+   else{gy=bbY+bbHalf+sg+it.lane*laneH;ly=gy+gh+lgap;below=true;}
+   out.push(glyphSvg(it.x0,it.x1,gy,gh,it.d.str,col,` data-i="${it.d.i}"`));
+   const fa=fontAttrs(fsL,opt.labelBold,opt.tfItalic,labelCol(col))+` data-ek="tf" data-ev="${esc(it.d.tf)}"`;
+   if(opt.siteLabels==='tf'){
+    if(rot===0)out.push(`<text x="${f2(it.cx)}" y="${f2(below?ly+fsL*0.8:ly)}" text-anchor="middle"${fa}>${esc(it.txt)}</text>`);
+    else{const a=+opt.labelRot;out.push(`<text x="${f2(it.cx)}" y="${f2(ly)}" transform="rotate(${below?a:-a} ${f2(it.cx)} ${f2(ly)})" dominant-baseline="${below?'hanging':'auto'}"${fa}>${esc(it.txt)}</text>`);}
+   }else if(it.inside){const sh=opt.glyph==='arrow'?(it.d.str==='+'?-gh*0.2:it.d.str==='-'?gh*0.2:0):0;
+    out.push(`<text x="${f2(it.cx+sh)}" y="${f2(gy+gh/2)}" text-anchor="middle" dominant-baseline="central"${fontAttrs(Math.min(fsL,gh*0.85),opt.labelBold,opt.tfItalic,opt.labelInsideColor)} data-ek="tf" data-ev="${esc(it.d.tf)}">${esc(it.txt)}</text>`);}
+  }
+  out.push('</g>');
+  if(opt.axis==='each'){const ay=rowB+(+opt.axisGap),fsA=+opt.axisSize,tl=+opt.tickLen,ac=opt.axisColor,aw=opt.axisW;const step=niceStep(e.L/Math.max(1,+opt.ticks));
+   const tk=[];for(let p=0;p<=e.L+1e-9;p+=step)tk.push(p);
+   out.push(`<g class="ruler"><line x1="${f2(X(0))}" x2="${f2(X(e.L))}" y1="${f2(ay)}" y2="${f2(ay)}" stroke="${ac}" stroke-width="${aw}"/>`);
+   tk.forEach((p,k)=>{let lab=opt.axisLabels==='genomic'?commas(gpos(e,Math.min(p,e.L-1))):commas(p===0?1:p);if(opt.axisUnit&&k===tk.length-1)lab+=' bp';
+    out.push(`<line x1="${f2(X(p))}" x2="${f2(X(p))}" y1="${f2(ay)}" y2="${f2(ay+tl)}" stroke="${ac}" stroke-width="${aw}"/><text x="${f2(X(p))}" y="${f2(ay+tl+1+fsA*0.85)}" text-anchor="middle"${fontAttrs(fsA,false,false,ac)}>${lab}</text>`);});
+   out.push('</g>');rowB=ay+tl+2+fsA*1.05;}
+  y=rowB+(+opt.rowGap);
+ }
+ if(ci)out.push('</g>');yMax=Math.max(yMax,y);}
+ y=yMax;
+ if(opt.axis==='scalebar'){const fsA=+opt.axisSize;const bp=niceStep(maxL/5);const len=(opt.scaleMode==='common'?pxC:avail/maxL)*bp;
+  out.push(`<g class="scalebar"><line x1="${f2(mL)}" x2="${f2(mL+len)}" y1="${f2(y)}" y2="${f2(y)}" stroke="${opt.axisColor}" stroke-width="${Math.max(1,opt.axisW*2)}"/><text x="${f2(mL+len+6)}" y="${f2(y)}" dominant-baseline="central"${fontAttrs(fsA,false,false,opt.axisColor)}>${commas(bp)} bp</text></g>`);
+  y+=fsA+14;}
+ let svgW=W;
+ if(opt.legend&&opt.legendPos==='bottom'){const L=drawLegend(mL,y,fullAvail,false,enhs);out.push(L.svg);y+=L.h+(L.h?8:0);}
+ if(opt.legend&&opt.legendPos==='right'){const L=drawLegend(W+4,yStart,0,true,enhs);out.push(L.svg);svgW=W+L.w+P+6;y=Math.max(y,yStart+L.h+P);}
+ return {body:out.join(''),w:Math.ceil(svgW),h:Math.ceil(y-(+opt.rowGap)*0.5+P*0.6)};
+}
+
+/* ================= sequence view ================= */
+function renderSeq(enhs){
+ if(!enhs||!enhs.length)return null;
+ const fam=FAM(),mono=opt.seqFont,fs=+opt.seqSize,N=Math.max(5,+opt.seqLineLen|0),fsL=+opt.labelSize,bh=+opt.seqBarH,P=+opt.pad;
+ const cw=tw('ACGTACGTAC',fs,mono)/10;
+ const maxNum=Math.max(...enhs.map(e=>opt.axisLabels==='genomic'?commas(isNaN(e.gS)?e.L:e.gE).length:String(e.L).length));
+ const numW=opt.seqNumbers?tw('8'.repeat(maxNum),fs*0.85,mono)+14:0;
+ const x0=P+numW,W=Math.max(x0+N*cw+P+10,300);
+ const labels=opt.siteLabels!=='none',lgap=+opt.labelGap;const laneH=bh+(labels?fsL+lgap:0)+2;
+ const heads=opt.glyph!=='box';
+ const out=[];let y=drawTitle(out,P,P);
+ if(opt.legend&&opt.legendPos==='top'){const L=drawLegend(P,y,W-2*P,false,enhs);out.push(L.svg);y+=L.h+(L.h?14:0);}
+ const yStart=y;
+ for(const e of enhs){
+  y+=+opt.nameSize;
+  if(opt.showName){const nw=tw(enhLabel(e.id),+opt.nameSize,fam,opt.nameBold,opt.nameItalic);
+   out.push(`<text x="${P}" y="${f2(y)}"${fontAttrs(opt.nameSize,opt.nameBold,opt.nameItalic,opt.nameColor)} data-ek="enh" data-ev="${esc(e.id)}">${esc(enhLabel(e.id))}</text>`);
+   if(opt.showCoords)out.push(`<text x="${f2(P+nw+8)}" y="${f2(y)}"${fontAttrs(opt.coordSize,false,false,opt.coordColor)} data-ek="sub" data-ev="${esc(e.id)}">${esc(subText(e))}</text>`);}
+  y+=8;
+  if(!e.seq){out.push(`<text x="${P}" y="${f2(y+fs)}"${fontAttrs(fs,false,true,opt.coordColor)}>No sequence provided — add it in the FASTA box.</text>`);y+=fs*1.5+(+opt.rowGap);continue;}
+  const sq=S.enhCfg[e.id].flip?rc(e.seq):e.seq;
+  const ds=dispSites(e,false);const colr=new Array(sq.length).fill(null);const inSite=new Uint8Array(sq.length);
+  for(const d of ds)for(let p=d.da;p<d.db&&p<sq.length;p++){colr[p]=shade(S.tfCfg[d.tf].color,0.3);inSite[p]=1;}
+  let chars=sq.split('');
+  if(opt.seqCase==='upper')chars=chars.map(c=>c.toUpperCase());
+  else if(opt.seqCase==='sites')chars=chars.map((c,i)=>inSite[i]?c.toUpperCase():c.toLowerCase());
+  for(let p0=0;p0<sq.length;p0+=N){
+   const p1=Math.min(sq.length,p0+N);const segs=[];
+   for(const d of ds){const s0=Math.max(d.da,p0),s1=Math.min(d.db,p1);if(s1<=s0)continue;
+    const five=d.str==='-'?(d.db<=p1&&d.db>p0):(d.da>=p0);
+    const l=x0+(s0-p0)*cw,r=x0+(s1-p0)*cw,txt=tfLabel(d.tf),w=labels&&five?tw(txt,fsL,fam,opt.labelBold,opt.tfItalic):0;
+    segs.push({d,l:d.str==='-'?Math.min(l,r-w):l,r:d.str==='-'?r:Math.max(r,l+w),x0:l,x1:r,txt,five,side:opt.layout==='split'&&d.str==='-'?'bot':'top',
+     headR:heads&&d.str==='+'&&s1===d.db,headL:heads&&d.str==='-'&&s0===d.da});}
+   const top=segs.filter(s=>s.side==='top'),bot=segs.filter(s=>s.side==='bot');
+   const nT=pack(top,3),nB=pack(bot,3);
+   const tTop=y+nT*laneH+2,base=tTop+fs*0.8,tBot=tTop+fs*1.0;
+   if(opt.seqNumbers){const lab=opt.axisLabels==='genomic'?commas(gpos(e,p0)):String(p0+1);
+    out.push(`<text x="${f2(x0-10)}" y="${f2(base)}" text-anchor="end" font-family="${esc(mono)}"${fontAttrs(f2(fs*0.85),false,false,opt.axisColor)}>${lab}</text>`);}
+   let t=`<text y="${f2(base)}" font-family="${esc(mono)}" font-size="${fs}" fill="${opt.seqColorText}" xml:space="preserve">`;
+   let i=p0;while(i<p1){const c=opt.seqColor?colr[i]:null,b=opt.seqBold&&inSite[i];let j=i+1;while(j<p1&&(opt.seqColor?colr[j]:null)===c&&(opt.seqBold&&inSite[j])===b)j++;
+    t+=`<tspan x="${f2(x0+(i-p0)*cw)}"${c?` fill="${c}"`:''}${b?' font-weight="bold"':''}>${esc(chars.slice(i,j).join(''))}</tspan>`;i=j;}
+   out.push(t+'</text>');
+   for(const s of segs){const col=S.tfCfg[s.d.tf].color;let by,ly;
+    if(s.side==='top'){by=tTop-2-bh-s.lane*laneH;ly=by-lgap;}else{by=tBot+2+s.lane*laneH;ly=by+bh+lgap+fsL*0.8;}
+    const a=s.x0+0.5,b=s.x1-0.5,hl=Math.min(bh*1.1,(b-a)*0.6),r=f2;
+    const d=`M${r(a+(s.headL?hl:0))} ${r(by)}H${r(b-(s.headR?hl:0))}`+(s.headR?`L${r(b)} ${r(by+bh/2)}L${r(b-hl)} ${r(by+bh)}`:`V${r(by+bh)}`)+`H${r(a+(s.headL?hl:0))}`+(s.headL?`L${r(a)} ${r(by+bh/2)}Z`:'Z');
+    const sc=opt.glyphStrokeMode==='darker'?shade(col,0.3):opt.glyphStroke,sw=opt.glyphStrokeMode==='none'?0:Math.min(+opt.glyphStrokeW,1);
+    out.push(`<path d="${d}" fill="${col}"${+opt.glyphOpacity<1?` fill-opacity="${opt.glyphOpacity}"`:''}${sw>0?` stroke="${sc}" stroke-width="${sw}"`:''} data-i="${s.d.i}"/>`);
+    if(labels&&s.five)out.push(`<text x="${f2(s.d.str==='-'?s.x1:s.x0)}" y="${f2(ly)}" text-anchor="${s.d.str==='-'?'end':'start'}"${fontAttrs(fsL,opt.labelBold,opt.tfItalic,labelCol(col))} data-ek="tf" data-ev="${esc(s.d.tf)}">${esc(s.txt)}</text>`);
+   }
+   y=tBot+2+nB*laneH+fs*0.45;
+  }
+  y+=+opt.rowGap;
+ }
+ let svgW=W;
+ if(opt.legend&&opt.legendPos==='bottom'){const L=drawLegend(P,y,W-2*P,false,enhs);out.push(L.svg);y+=L.h+P;}
+ if(opt.legend&&opt.legendPos==='right'){const L=drawLegend(W,yStart,0,true,enhs);out.push(L.svg);svgW=W+L.w+P+6;y=Math.max(y,yStart+L.h+P);}
+ return {body:out.join(''),w:Math.ceil(svgW),h:Math.ceil(y)};
+}
+function wrapSvg(body,w,h){w=Math.ceil(w);
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" font-family="${esc(FAM())}"><rect class="bg" x="0" y="0" width="${w}" height="${h}" fill="${opt.bg}"/>${body}</svg>`;}
+
+/* ================= render loop ================= */
+let raf=0;function render(){cancelAnimationFrame(raf);raf=requestAnimationFrame(doRender);}
+function doRender(){
+ computeShared();
+ {const nShown=S.tfOrder.filter(t=>S.tfCfg[t].visible&&(!S.shared||S.shared.has(t))).length,nb=basePal().length;
+  $('palWarn').textContent=nShown>nb?`${nShown} TFs shown but this palette has ${nb} colors. Extra TFs get lighter/darker variants that colorblind readers may not tell apart, so keep site labels on, or hide TFs / use the shared filter.`:'';}
+ $('sharedInfo').textContent=S.shared?`${S.shared.size} TF${S.shared.size===1?'':'s'} found in ≥${S.sharedThr} of ${S.nVis} shown CREs${opt.sharedMode==='atleast'&&+opt.sharedN>S.nVis?' (N lowered to the number of shown CREs)':''}. Hide CREs in section 3 to compare a specific subset.`:'';
+ const figs=buildFigs();const fig=$('fig');
+ if(!figs.length){fig.innerHTML=`<div class="empty">${S.enh.length?'All CREs are hidden.':'Paste a TFBS table on the left, or click <b>Load example</b>.<br>Accepted: the 7-column format (Enhancer, EnhStart, EnhEnd, TF_motif, SiteStart, SiteEnd, Strand), JASPAR scan tables, or FIMO TSV.'}</div>`;$('stats').textContent='';$('pageInfo').textContent='';return;}
+ const pd=pageDims(figs);S.lastFigs=figs;S.lastPd=pd;
+ fig.classList.toggle('paged',!!pd);
+ fig.innerHTML=figs.map(f=>composeSvg(f,pd,false)).join('');applyZoom();autosave();
+ const enhs=visEnh();let n=0;for(const e of enhs)n+=dispSites(e,false).length;
+ $('stats').textContent=`${enhs.length} CRE${enhs.length===1?'':'s'} · ${n} sites shown${S.shared?` · shared TFs only (≥${S.sharedThr}/${S.nVis})`:''} · double-click text to edit`;
+ pageInfo(figs,pd);
+ updateCounts();
+}
+function applyZoom(){const z=+$('zoom').value;$('fig').querySelectorAll('svg').forEach(s=>{s.style.width=(s.getAttribute('data-w')*z)+'px';s.style.height=(s.getAttribute('data-h')*z)+'px';});}
+
+/* ================= figures, pages ================= */
+function buildFigs(){const enhs=visEnh();if(!enhs.length)return[];
+ const per=Math.max(0,+opt.perPage|0),chunks=[];
+ if(per>0)for(let i=0;i<enhs.length;i+=per)chunks.push(enhs.slice(i,i+per));else chunks.push(enhs);
+ const maxL=Math.max(...enhs.map(e=>e.L));
+ return chunks.map(ch=>opt.view==='seq'?renderSeq(ch):renderMap(ch,maxL)).filter(Boolean);}
+const PAGE={A4:[595.28,841.89],A5:[419.53,595.28],A3:[841.89,1190.55],Letter:[612,792],Legal:[612,1008]};
+function pageDims(figs){if(opt.page==='none')return null;
+ let [pw,ph]=PAGE[opt.page]||PAGE.A4;const m=Math.max(0,+opt.marginMM)*72/25.4;
+ const fw=Math.max(...figs.map(f=>f.w))*0.75,fh=Math.max(...figs.map(f=>f.h))*0.75;
+ const sc=(W,H)=>Math.min((W-2*m)/fw,(H-2*m)/fh);
+ const land=opt.orient==='landscape'||(opt.orient==='auto'&&sc(ph,pw)>sc(pw,ph));if(land)[pw,ph]=[ph,pw];
+ let s=sc(pw,ph);if(opt.pageScale==='shrink')s=Math.min(s,1);else if(opt.pageScale==='actual')s=1;
+ return{pw,ph,m,s,k:0.75*s,land};}
+function composeSvg(f,pd,forExport){
+ const ff=esc(FAM()),ns='xmlns="http://www.w3.org/2000/svg"';
+ if(!pd){return `<svg ${ns} width="${f.w}" height="${f.h}" data-w="${f.w}" data-h="${f.h}" viewBox="0 0 ${f.w} ${f.h}" font-family="${ff}"><rect class="bg" x="0" y="0" width="${f.w}" height="${f.h}" fill="${opt.bg}"/>${f.body}</svg>`;}
+ const {pw,ph,m,k}=pd;const cw=f.w*k,ch=f.h*k;const ox=m+((pw-2*m)-cw)/2,oy=opt.pageVAlign==='center'?m+((ph-2*m)-ch)/2:m;
+ const wAttr=forExport?`${f2(pw/72*25.4)}mm`:f2(pw/0.75),hAttr=forExport?`${f2(ph/72*25.4)}mm`:f2(ph/0.75);
+ return `<svg ${ns} width="${wAttr}" height="${hAttr}" data-w="${f2(pw/0.75)}" data-h="${f2(ph/0.75)}" viewBox="0 0 ${f2(pw)} ${f2(ph)}" font-family="${ff}"><rect class="bg" x="0" y="0" width="${f2(pw)}" height="${f2(ph)}" fill="${opt.bg}"/><g transform="translate(${f2(ox)},${f2(oy)}) scale(${+k.toFixed(5)})">${f.body}</g></svg>`;}
+function minFont(){const v=opt.view==='seq';const L=[+opt.labelSize,+opt.legendSize];
+ if(opt.showName)L.push(+opt.nameSize);if(opt.showCoords)L.push(+opt.coordSize);if(v)L.push(+opt.seqSize);else if(opt.axis!=='none')L.push(+opt.axisSize);return Math.min(...L);}
+function pageInfo(figs,pd){const el=$('pageInfo');const np=figs.length;
+ if(!pd){el.textContent=np>1?`${np} parts`:'';return;}
+ const pt=minFont()*0.75*pd.s;
+ el.innerHTML=`${np} page${np>1?'s':''} · ${opt.page} ${pd.land?'landscape':'portrait'} · scaled ${Math.round(pd.s*100)}% · smallest text ${pt.toFixed(1)} pt`+(pt<5?' <b style="color:#c0392b">(too small to print, use more CREs per page split, columns, or larger fonts)</b>':'');}
+
+/* ================= TF & CRE lists ================= */
+function drawTfList(){
+ const q=$('tfFilter').value.toLowerCase();
+ $('tfList').innerHTML=S.tfOrder.filter(t=>!q||t.toLowerCase().includes(q)||tfLabel(t).toLowerCase().includes(q)).map(t=>{const c=S.tfCfg[t];
+  return `<div class="li" data-tf="${esc(t)}"><input type="checkbox" data-k="visible" ${c.visible?'checked':''} title="show / hide"><input type="color" data-k="color" value="${c.color}" title="color"><div><input type="text" data-k="label" value="${esc(tfLabel(t))}" title="label shown in figure"><span class="orig">${esc(t)}</span></div><span class="n" data-cnt></span></div>`;}).join('')||'<div class="li small">No TFs yet.</div>';
+ updateCounts();
+}
+function updateCounts(){const cnt={};for(const e of visEnh())for(const d of dispSites(e,true))cnt[d.tf]=(cnt[d.tf]||0)+1;const cc=S.creCnt||{};
+ document.querySelectorAll('#tfList .li[data-tf]').forEach(el=>{const t=el.dataset.tf,n=el.querySelector('[data-cnt]');
+  n.textContent=`${cnt[t]||0} · ${cc[t]||0}/${S.nVis||0}`;n.title=`${cnt[t]||0} sites; present in ${cc[t]||0} of ${S.nVis||0} shown CREs`;
+  el.classList.toggle('off',!!(S.shared&&S.tfCfg[t].visible&&!S.shared.has(t)));});}
+function setTfLabel(tf,v){v=v.trim();S.tfCfg[tf].label=(!v||v===autoTf(tf))?'':v;}
+function setEnhLabel(id,v){v=v.trim();S.enhCfg[id].label=(!v||v===id)?'':v;}
+function setEnhSub(id,v){v=v.trim();const e=S.E.get(id);S.enhCfg[id].sub=(!v||v===autoSub(e))?'':v;}
+$('tfList').addEventListener('input',ev=>{const li=ev.target.closest('[data-tf]');if(!li)return;const tf=li.dataset.tf,c=S.tfCfg[tf],k=ev.target.dataset.k;
+ if(k==='visible')c.visible=ev.target.checked;else if(k==='color')c.color=ev.target.value;else if(k==='label')setTfLabel(tf,ev.target.value);render();});
+$('tfFilter').addEventListener('input',drawTfList);
+$('tfAll').onclick=()=>{S.tfOrder.forEach(t=>S.tfCfg[t].visible=true);drawTfList();render();};
+$('tfNone').onclick=()=>{S.tfOrder.forEach(t=>S.tfCfg[t].visible=false);drawTfList();render();};
+function recolor(){S.tfOrder.forEach((t,i)=>S.tfCfg[t].color=palColor(i));S.palIdx=S.tfOrder.length;drawTfList();render();}
+$('tfRecolor').onclick=recolor;
+function drawPalSw(){const b=basePal();$('palSw').innerHTML=b.map(c=>`<span title="${c}" style="width:22px;height:14px;border-radius:3px;background:${c};border:1px solid ${shade(c,0.3)}"></span>`).join('');}
+
+function drawEnhList(){
+ $('enhList').innerHTML=S.enhOrder.map(id=>{const c=S.enhCfg[id],e=S.E.get(id);
+  return `<div class="li" data-id="${esc(id)}"><input type="checkbox" data-k="visible" ${c.visible?'checked':''} title="show / hide"><div><input type="text" data-k="label" value="${esc(enhLabel(id))}" title="name shown in figure"><input type="text" class="sub" data-k="sub" value="${esc(c.sub)}" placeholder="${esc(autoSub(e))}" title="subtitle (empty = default)"><span class="orig">${esc(id)}${e.seq?' · has sequence':''}</span></div><input type="number" min="1" data-k="len" value="${c.len||''}" placeholder="${e.L}" title="Length in bp. Empty = automatic (${commas(e.Lc)} from coordinates${e.Ln>0?', '+commas(e.Ln)+' from name':''})"><label class="small" title="reverse-complement"><input type="checkbox" data-k="flip" ${c.flip?'checked':''}>flip</label><span class="mv"><button data-mv="-1">↑</button><button data-mv="1">↓</button></span></div>`;}).join('')||'<div class="li small">No CREs yet.</div>';
+}
+$('enhList').addEventListener('input',ev=>{const li=ev.target.closest('[data-id]');if(!li)return;const id=li.dataset.id,c=S.enhCfg[id],k=ev.target.dataset.k;
+ if(k==='visible')c.visible=ev.target.checked;else if(k==='flip'){c.flip=ev.target.checked;li.querySelector('.sub').placeholder=autoSub(S.E.get(id));}
+ else if(k==='label')setEnhLabel(id,ev.target.value);else if(k==='sub')setEnhSub(id,ev.target.value);
+ else if(k==='len'){const v=+ev.target.value;c.len=v>0?v:'';clearTimeout(lenT);lenT=setTimeout(()=>{const a=document.activeElement,ai=a&&a.closest('[data-id]')?.dataset.id;build();if(ai){const el=document.querySelector(`#enhList [data-id="${CSS.escape(ai)}"] input[data-k=len]`);if(el){el.focus();const v2=el.value;el.value='';el.value=v2;}}},500);return;}
+ render();});
+let lenT=0;
+$('enhList').addEventListener('click',ev=>{const b=ev.target.closest('[data-mv]');if(!b)return;const id=b.closest('[data-id]').dataset.id;const i=S.enhOrder.indexOf(id),j=i+ +b.dataset.mv;
+ if(j<0||j>=S.enhOrder.length)return;[S.enhOrder[i],S.enhOrder[j]]=[S.enhOrder[j],S.enhOrder[i]];drawEnhList();render();});
+$('enAll').onclick=()=>{S.enhOrder.forEach(id=>S.enhCfg[id].visible=true);drawEnhList();render();};
+$('enNone').onclick=()=>{S.enhOrder.forEach(id=>S.enhCfg[id].visible=false);drawEnhList();render();};
+
+/* bulk rename */
+function bulk(kind){
+ const f=$(kind+'Find').value,r=$(kind+'Repl').value,rx=$(kind+'Rx').checked;if(!f)return;
+ let re=null;if(rx){try{re=new RegExp(f,'g');}catch(e){$(kind+'Find').style.borderColor='#c0392b';return;}}$(kind+'Find').style.borderColor='';
+ const list=kind==='tf'?S.tfOrder:S.enhOrder;
+ for(const id of list){const cur=kind==='tf'?tfLabel(id):enhLabel(id);let nv=(re?cur.replace(re,r):cur.split(f).join(r)).trim();if(!nv)continue;
+  kind==='tf'?setTfLabel(id,nv):setEnhLabel(id,nv);}
+ kind==='tf'?drawTfList():drawEnhList();render();
+}
+function abSync(){if(!opt.tfCaseSet&&opt.tfCase==='protein')opt.tfCase='upper';$('abCase').value=opt.tfCase;$('abOn').checked=!!opt.abbrevOn;$('abStrip').checked=!!opt.stripId;if(!opt.abbrevText||opt.abbrevText===ABBR_V1)opt.abbrevText=ABBR_DEFAULT;$('abText').value=opt.abbrevText;}
+function abCount(){const n=S.tfOrder.filter(t=>autoTf(t)!==t).length;$('abInfo').textContent=S.tfOrder.length?`${n} of ${S.tfOrder.length} TF names shortened`:'';}
+$('abCase').onchange=()=>{opt.tfCase=$('abCase').value;opt.tfCaseSet=true;drawTfList();render();abCount();};
+$('abOn').onchange=()=>{opt.abbrevOn=$('abOn').checked;drawTfList();render();abCount();};
+$('abStrip').onchange=()=>{opt.stripId=$('abStrip').checked;syncOpts();drawTfList();render();abCount();};
+$('abApply').onclick=()=>{opt.abbrevText=$('abText').value;drawTfList();render();abCount();};
+$('abText').addEventListener('input',()=>{clearTimeout(abT);abT=setTimeout(()=>{opt.abbrevText=$('abText').value;drawTfList();render();abCount();},600);});let abT=0;
+$('abDefault').onclick=()=>{opt.abbrevText=ABBR_DEFAULT;$('abText').value=ABBR_DEFAULT;drawTfList();render();abCount();};
+$('tfApply').onclick=()=>bulk('tf');$('enApply').onclick=()=>bulk('en');
+$('tfReset').onclick=()=>{S.tfOrder.forEach(t=>S.tfCfg[t].label='');drawTfList();render();};
+$('enReset').onclick=()=>{S.enhOrder.forEach(id=>{S.enhCfg[id].label='';S.enhCfg[id].sub='';});drawEnhList();render();};
+
+/* ================= option panels ================= */
+const REBUILD=new Set(['coord','sitePos','lengthSrc']);
+function buildOpts(){
+ for(const [cid,list] of Object.entries(SPEC)){const box=$(cid);
+  for(const [k,label,type,ex] of list){
+   if(k==='h'){const h=document.createElement('h4');h.textContent=label;box.appendChild(h);continue;}
+   const d=document.createElement('div');d.className='opt';const id='o_'+k;let inp;
+   if(type==='sel')inp=`<select id="${id}">${ex.map(([v,t])=>`<option value="${esc(v)}">${esc(t)}</option>`).join('')}</select>`;
+   else if(type==='chk')inp=`<input type="checkbox" id="${id}">`;
+   else if(type==='col')inp=`<input type="color" id="${id}">`;
+   else if(type==='txt')inp=`<input type="text" id="${id}">`;
+   else{const [mn,mx,st]=ex||[0,200,0.5];inp=`<input type="number" id="${id}"${mn!=null?` min="${mn}"`:''}${mx!=null?` max="${mx}"`:''} step="${st||'any'}">`;}
+   d.innerHTML=`<label for="${id}">${esc(label)}</label>${inp}`;box.appendChild(d);
+   const el=d.querySelector('#'+id);
+   el.addEventListener(type==='txt'||type==='num'||type==='col'?'input':'change',()=>{
+    let v=type==='chk'?el.checked:el.value;if(type==='num'&&k!=='minScore'&&k!=='maxP'){if(v===''||isNaN(+v))return;v=+v;}
+    opt[k]=v;
+    if(k==='orientByBed'){for(const e of S.enh)S.enhCfg[e.id].flip=opt.orientByBed&&e.bedStrand==='-';drawEnhList();}
+    if(k==='stripId'){drawTfList();abSync();}
+    if(k==='coordMode')drawEnhList();
+    if(['page','orient','marginMM'].includes(k))setTimeout(fitZoom,60);
+    if(k==='palette'||k==='customPal'){drawPalSw();recolor();return;}
+    if(REBUILD.has(k))build();else render();});
+  }}
+}
+function syncOpts(){for(const list of Object.values(SPEC))for(const [k,,type] of list){const el=$('o_'+k);if(!el)continue;if(type==='chk')el.checked=!!opt[k];else el.value=opt[k];}
+ document.querySelectorAll('#bar [data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===opt.view));}
+
+/* ================= figure interaction ================= */
+document.querySelectorAll('#bar [data-view]').forEach(b=>b.onclick=()=>{opt.view=b.dataset.view;syncOpts();render();});
+$('zoom').addEventListener('input',applyZoom);
+function fitZoom(){const s=$('fig').querySelector('svg');if(!s)return;const W=$('stage').clientWidth-44;$('zoom').value=Math.max(0.3,Math.min(3,W/ +s.getAttribute('data-w')));applyZoom();}
+$('bFit').onclick=fitZoom;
+const tip=$('tip');
+$('fig').addEventListener('mousemove',ev=>{const t=ev.target.closest('[data-i]');if(!t){tip.style.display='none';return;}
+ const s=S.sites[+t.dataset.i],e=S.E.get(s.enh),c=S.tfCfg[s.tf];const flip=S.enhCfg[e.id].flip;
+ const da=flip?e.L-s.b:s.a,db=flip?e.L-s.a:s.b,ds=flip?(s.strand==='+'?'−':s.strand==='-'?'+':'.'):(s.strand==='-'?'−':s.strand);
+ let h=`<div><span class="sw" style="background:${c.color}"></span><b>${esc(tfLabel(s.tf))}</b> <span style="opacity:.7">${esc(s.tf)}</span></div>`;
+ h+=`<div>${esc(enhLabel(e.id))} · ${da+1}–${db} of ${e.L} bp${flip?' (flipped)':''}</div>`;
+ if(!isNaN(e.gS))h+=`<div>Genomic ${e.chr?esc(e.chr)+':':''}${commas(e.gS+s.a)}–${commas(e.gS+s.b-(opt.coord==='1'?1:0))}</div>`;
+ h+=`<div>Strand ${s.strand==='-'?'−':s.strand}${flip?` → shown ${ds}`:''} · ${s.b-s.a} bp</div>`;
+ if(!isNaN(s.score))h+=`<div>Score ${s.score}</div>`;if(!isNaN(s.p))h+=`<div>p = ${s.p}</div>`;
+ if(e.seq){let q=e.seq.slice(s.a,s.b);if(s.strand==='-')q=rc(q);h+=`<div style="font-family:monospace">${esc(q.toUpperCase())}</div>`;}else if(s.seq)h+=`<div style="font-family:monospace">${esc(s.seq)}</div>`;
+ tip.innerHTML=h;tip.style.display='block';
+ tip.style.left=Math.min(ev.clientX+14,innerWidth-tip.offsetWidth-8)+'px';tip.style.top=Math.min(ev.clientY+14,innerHeight-tip.offsetHeight-8)+'px';});
+$('fig').addEventListener('mouseleave',()=>tip.style.display='none');
+$('fig').addEventListener('click',ev=>{const g=ev.target.closest('[data-tog]');if(!g)return;const c=S.tfCfg[g.dataset.tog];if(!c)return;c.visible=false;drawTfList();render();});
+
+/* inline editing: double-click any name/label/title in the figure */
+const ied=$('ied');let edTarget=null;
+function edValue(k,v){if(k==='title')return opt.title;if(k==='legendTitle')return opt.legendTitle;if(k==='enh')return enhLabel(v);if(k==='sub')return subText(S.E.get(v));if(k==='tf')return tfLabel(v);return '';}
+$('fig').addEventListener('dblclick',ev=>{const t=ev.target.closest('[data-ek]');if(!t)return;ev.preventDefault();tip.style.display='none';
+ const r=t.getBoundingClientRect();edTarget={k:t.dataset.ek,v:t.dataset.ev};
+ ied.value=edValue(edTarget.k,edTarget.v);ied.style.display='block';ied.style.left=Math.max(4,r.left-6)+'px';ied.style.top=Math.max(4,r.top+r.height/2-16)+'px';
+ ied.style.width=Math.max(160,r.width+60)+'px';ied.focus();ied.select();});
+function commitEdit(){if(!edTarget)return;const {k,v}=edTarget,val=ied.value;edTarget=null;ied.style.display='none';
+ if(k==='title'){opt.title=val;syncOpts();}else if(k==='legendTitle'){opt.legendTitle=val;syncOpts();}
+ else if(k==='enh'){setEnhLabel(v,val);drawEnhList();}else if(k==='sub'){setEnhSub(v,val);drawEnhList();}else if(k==='tf'){setTfLabel(v,val);drawTfList();}
+ render();}
+ied.addEventListener('keydown',ev=>{if(ev.key==='Enter')commitEdit();else if(ev.key==='Escape'){edTarget=null;ied.style.display='none';}});
+ied.addEventListener('blur',commitEdit);
+
+/* ================= inputs ================= */
+let bt=0;const rebuildSoon=()=>{clearTimeout(bt);bt=setTimeout(build,250);};
+['tSites','tBed','tFa'].forEach(id=>$(id).addEventListener('input',rebuildSoon));
+function readFile(inp,ta){inp.addEventListener('change',()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$(ta).value=r.result;build();};r.readAsText(f);});}
+readFile($('fSites'),'tSites');readFile($('fBed'),'tBed');readFile($('fFa'),'tFa');
+const resetCfg=()=>Object.assign(S,{tfCfg:{},tfOrder:[],enhCfg:{},enhOrder:[],palIdx:0});
+$('bClear').onclick=()=>{['tSites','tBed','tFa'].forEach(id=>$(id).value='');resetCfg();try{localStorage.removeItem(LS);}catch(e){}build();};
+$('bResetStyle').onclick=()=>{const keep={view:opt.view,coord:opt.coord,sitePos:opt.sitePos,orientByBed:opt.orientByBed,minScore:opt.minScore,maxP:opt.maxP,title:opt.title,legendTitle:opt.legendTitle};opt=Object.assign({},DEF,keep);syncOpts();render();};
+
+/* ================= export ================= */
+const inFrame=(()=>{try{return window.self!==window.top;}catch(e){return true;}})();
+function cleanStr(t){t=t.replace(/ data-(?:i|tog|ek|ev|w|h)="[^"]*"/g,'');if(opt.transparent)t=t.replace(/<rect class="bg"[^>]*\/>/g,'');return t;}
+function exportSvgs(forExport){const figs=S.lastFigs||[],pd=S.lastPd;return figs.map(f=>cleanStr(composeSvg(f,pd,forExport)));}
+const XMLH='<?xml version="1.0" encoding="UTF-8"?>\n';
+function fname(ext,i,n){return (opt.title||'tfbs_map').replace(/[^\w\-]+/g,'_')+(opt.view==='seq'?'_sequence':'')+(n>1?`_p${i+1}`:'')+'.'+ext;}
+function download(blob,name,preview){
+ const url=URL.createObjectURL(blob);try{const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();}catch(e){}
+ if(inFrame&&preview)showModal(name,preview);setTimeout(()=>URL.revokeObjectURL(url),60000);}
+function showModal(name,p){$('mTitle').textContent=name;
+ $('mNote').textContent='If the download did not start (embedded previews can block downloads): right-click the image → “Save image as…”, or copy the text below into a file. Opening this HTML file directly in your browser makes downloads work normally.';
+ $('mImg').style.display=p.img?'block':'none';if(p.img)$('mImg').src=p.img;
+ $('mText').style.display=p.text!=null?'block':'none';$('mCopy').style.display=p.text!=null?'':'none';if(p.text!=null)$('mText').value=p.text;
+ $('modal').style.display='flex';}
+$('mClose').onclick=()=>$('modal').style.display='none';
+$('mCopy').onclick=async()=>{try{await navigator.clipboard.writeText($('mText').value);$('mCopy').textContent='Copied';}catch(e){$('mText').select();}setTimeout(()=>$('mCopy').textContent='Copy text',1500);};
+const later=(fn,i)=>setTimeout(fn,i*400);
+$('bSvg').onclick=()=>{const L=exportSvgs(true);L.forEach((t,i)=>later(()=>{t=XMLH+t;download(new Blob([t],{type:'image/svg+xml'}),fname('svg',i,L.length),i?null:{img:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(t),text:t});},i));};
+$('bCopy').onclick=async()=>{const t=exportSvgs(true)[0];if(!t)return;try{await navigator.clipboard.writeText(XMLH+t);$('bCopy').textContent='Copied ✓';}catch(e){showModal(fname('svg'),{text:XMLH+t});}setTimeout(()=>$('bCopy').textContent='Copy SVG',1500);};
+$('bPng').onclick=()=>{const L=exportSvgs(false),dpi=+$('pngDpi').value,pd=S.lastPd;
+ L.forEach((t,i)=>later(()=>{const f=S.lastFigs[i];const wpx=pd?pd.pw/0.75:f.w,hpx=pd?pd.ph/0.75:f.h;const k=dpi/96;
+  const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=Math.round(wpx*k);c.height=Math.round(hpx*k);const x=c.getContext('2d');
+   if(!opt.transparent){x.fillStyle=opt.bg;x.fillRect(0,0,c.width,c.height);}x.drawImage(img,0,0,c.width,c.height);
+   c.toBlob(b=>download(b,fname('png',i,L.length),i?null:{img:c.toDataURL('image/png')}),'image/png');};
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(t);},i));};
+function pngBlob(svgStr,wpx,hpx,dpi){return new Promise((res,rej)=>{const k=dpi/96,img=new Image();
+ img.onload=()=>{const c=document.createElement('canvas');c.width=Math.round(wpx*k);c.height=Math.round(hpx*k);const x=c.getContext('2d');
+  if(!opt.transparent){x.fillStyle=opt.bg;x.fillRect(0,0,c.width,c.height);}x.drawImage(img,0,0,c.width,c.height);c.toBlob(b=>b?res(b):rej(new Error('PNG failed')),'image/png');};
+ img.onerror=()=>rej(new Error('could not render figure'));img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgStr);});}
+/* store-only ZIP writer */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function makeZip(files){const enc=new TextEncoder(),parts=[],cen=[];let off=0;
+ const d=new Date(),dt=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1))&0xFFFF,dd=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF;
+ for(const f of files){const nm=enc.encode(f.name),data=f.data,crc=crc32(data);
+  const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);h.setUint16(10,dt,true);h.setUint16(12,dd,true);
+  h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,nm.length,true);h.setUint16(28,0,true);
+  parts.push(new Uint8Array(h.buffer),nm,data);
+  const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(10,0,true);c.setUint16(12,dt,true);c.setUint16(14,dd,true);
+  c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);c.setUint16(28,nm.length,true);c.setUint32(42,off,true);
+  cen.push(new Uint8Array(c.buffer),nm);off+=30+nm.length+data.length;}
+ const cs=cen.reduce((a,b)=>a+b.length,0);const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+ return new Blob([...parts,...cen,new Uint8Array(e.buffer)],{type:'application/zip'});}
+async function exportEach(){const enhs=visEnh();if(!enhs.length)return;const btn=$('bEach'),info=$('eachInfo');btn.disabled=true;
+ try{const maxL=Math.max(...enhs.map(e=>e.L)),fmt=opt.sepFormat,dpi=+$('pngDpi').value;
+  const figs=enhs.map(e=>opt.view==='seq'?renderSeq([e]):renderMap([e],opt.sepSameScale?maxL:e.L));
+  const pd=opt.sepPage==='page'?pageDims(figs):null;const used={},files=[],enc=new TextEncoder();
+  for(let i=0;i<enhs.length;i++){info.textContent=`${i+1}/${enhs.length}…`;const f=figs[i];
+   let base=enhLabel(enhs[i].id).replace(/[^\w\-.]+/g,'_').replace(/^_+|_+$/g,'')||'CRE';if(used[base])base+='_'+(++used[base]);else used[base]=1;
+   let data;
+   if(fmt==='svg')data=enc.encode(XMLH+cleanStr(composeSvg(f,pd,true)));
+   else if(fmt==='pdf')data=new Uint8Array(await buildPdf([{svg:cleanStr(composeSvg(f,pd,false)),w:pd?pd.pw:f.w*0.75,h:pd?pd.ph:f.h*0.75}]).arrayBuffer());
+   else data=new Uint8Array(await (await pngBlob(cleanStr(composeSvg(f,pd,false)),pd?pd.pw/0.75:f.w,pd?pd.ph/0.75:f.h,dpi)).arrayBuffer());
+   files.push({name:`${base}${opt.view==='seq'?'_sequence':''}.${fmt}`,data});await new Promise(r=>setTimeout(r,0));}
+  const zname=(opt.title||'tfbs_map').replace(/[^\w\-]+/g,'_')+`_each_CRE_${fmt}.zip`;
+  download(makeZip(files),zname,inFrame?{text:null,img:null}:null);info.textContent=`${files.length} files ✓`;}
+ catch(e){console.error(e);info.textContent='Failed: '+e.message;}
+ btn.disabled=false;}
+$('bEach').onclick=exportEach;
+
+/* ---- standalone legend & TF table ---- */
+function legendFig(){const enhs=visEnh();if(!enhs.length)return null;const P=+opt.pad||10;const col=opt.legDlLayout==='column';
+ const L=drawLegend(P,P,col?0:Math.max(100,+opt.width-2*P),col,enhs);if(!L.svg)return null;
+ return{body:L.svg.replace(/ data-(?:tog|ek|ev)="[^"]*"/g,''),w:Math.ceil(L.w+2*P),h:Math.ceil(L.h+2*P)};}
+function tfTableData(){const enhs=visEnh();const {tfs}=legendItems(enhs);
+ return tfs.map(t=>{const per=enhs.map(e=>dispSites(e,false).filter(d=>d.tf===t));const all=per.flat();
+  return{tf:t,label:tfLabel(t),gene:geneName(t)||'—',color:S.tfCfg[t].color,plus:all.filter(d=>d.str==='+').length,minus:all.filter(d=>d.str==='-').length,
+   other:all.filter(d=>d.str==='.').length,total:all.length,nCre:per.filter(x=>x.length).length,per:per.map(x=>x.length)};});}
+function tableFig(){const enhs=visEnh();const rows=tfTableData();if(!rows.length)return null;
+ const fam=FAM(),fs=+opt.legendSize,P=+opt.pad||10,sw=+opt.swatchW,sh=Math.min(+opt.swatchH,fs*1.1),rowH=Math.max(fs*1.75,sh+6),pad=14;
+ const anyOther=rows.some(r=>r.other);
+ const head=['','TF','Gene name','Motif (input name)','+ strand','− strand'].concat(anyOther?['unstranded']:[],['Total',`CREs (of ${enhs.length})`]).concat(opt.tblPerCre?enhs.map(e=>enhLabel(e.id)):[]);
+ const cells=rows.map(r=>['',r.label,r.gene,r.tf,r.plus,r.minus].concat(anyOther?[r.other]:[],[r.total,r.nCre]).concat(opt.tblPerCre?r.per:[]));
+ const W=head.map((h,i)=>i===0?sw:Math.max(tw(h,fs,fam,true),...cells.map((c,j)=>tw(String(c[i]),fs,fam,false,i===1&&opt.tfItalic))));
+ const xs=[];let x=P;W.forEach(w=>{xs.push(x);x+=w+pad;});const totalW=x-pad+P;
+ const out=[];let y=P;const title=opt.tblTitle||'';
+ if(title){y+=fs*1.25;out.push(`<text x="${P}" y="${f2(y)}"${fontAttrs(f2(fs*1.15),true,false,opt.legendColor)}>${esc(title)}</text>`);y+=fs*0.8;}
+ const num=i=>i>=4;
+ const hy=y+rowH/2;head.forEach((h,i)=>{if(!h)return;const ax=num(i)?xs[i]+W[i]:xs[i];
+  out.push(`<text x="${f2(ax)}" y="${f2(hy)}" dominant-baseline="central"${num(i)?' text-anchor="end"':''}${fontAttrs(fs,true,false,opt.legendColor)}>${esc(h)}</text>`);});
+ y+=rowH;out.push(`<line x1="${P}" x2="${f2(totalW-P)}" y1="${f2(y)}" y2="${f2(y)}" stroke="${opt.legendColor}" stroke-width="0.8"/>`);
+ rows.forEach((r,j)=>{const cy=y+rowH/2;
+  out.push(glyphSvg(xs[0],xs[0]+sw,cy-sh/2,sh,'+',r.color,''));
+  cells[j].forEach((c,i)=>{if(i===0)return;const ax=num(i)?xs[i]+W[i]:xs[i];
+   out.push(`<text x="${f2(ax)}" y="${f2(cy)}" dominant-baseline="central"${num(i)?' text-anchor="end"':''}${fontAttrs(fs,false,(i===1&&opt.tfItalic)||(i===2&&r.gene!=='—'),i===3?opt.coordColor:opt.legendColor)}>${esc(String(c))}</text>`);});
+  y+=rowH;if(j<rows.length-1)out.push(`<line x1="${P}" x2="${f2(totalW-P)}" y1="${f2(y)}" y2="${f2(y)}" stroke="#d9d8d2" stroke-width="0.5"/>`);});
+ out.push(`<line x1="${P}" x2="${f2(totalW-P)}" y1="${f2(y)}" y2="${f2(y)}" stroke="${opt.legendColor}" stroke-width="0.8"/>`);
+ return{body:out.join(''),w:Math.ceil(totalW),h:Math.ceil(y+P)};}
+async function exportOne(f,fmt,base){if(!f){$('msg').insertAdjacentHTML('afterbegin','<div class="warn">Nothing to export: no TFs are shown.</div>');return;}
+ const svgPx=cleanStr(composeSvg(f,null,false));
+ if(fmt==='svg'){const t=XMLH+svgPx;download(new Blob([t],{type:'image/svg+xml'}),base+'.svg',{img:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(t),text:t});}
+ else if(fmt==='pdf')download(buildPdf([{svg:svgPx,w:f.w*0.75,h:f.h*0.75}]),base+'.pdf',inFrame?{}:null);
+ else{const b=await pngBlob(svgPx,f.w,f.h,+$('pngDpi').value);download(b,base+'.png',{img:URL.createObjectURL(b)});}}
+const stem=()=>(opt.title||'tfbs_map').replace(/[^\w\-]+/g,'_');
+document.querySelectorAll('[data-leg]').forEach(b=>b.onclick=()=>exportOne(legendFig(),b.dataset.leg,stem()+'_legend'));
+document.querySelectorAll('[data-tbl]').forEach(b=>b.onclick=()=>{const fmt=b.dataset.tbl;
+ if(fmt!=='tsv')return exportOne(tableFig(),fmt,stem()+'_TF_table');
+ const enhs=visEnh(),rows=tfTableData();if(!rows.length)return;
+ const H=['TF','Gene_name','Motif_input_name','Color','Plus_strand','Minus_strand','Unstranded','Total_sites','CREs_with_TF','CREs_shown'].concat(enhs.map(e=>enhLabel(e.id)));
+ const t=[H.join('\t')].concat(rows.map(r=>[r.label,r.gene==='—'?'':r.gene,r.tf,r.color,r.plus,r.minus,r.other,r.total,r.nCre,enhs.length].concat(r.per).join('\t'))).join('\n');
+ download(new Blob([t],{type:'text/tab-separated-values'}),stem()+'_TF_table.tsv',{text:t});});
+$('bPdf').onclick=()=>{const L=exportSvgs(false),pd=S.lastPd;if(!L.length)return;
+ try{const pages=L.map((t,i)=>{const f=S.lastFigs[i];return{svg:t,w:pd?pd.pw:f.w*0.75,h:pd?pd.ph:f.h*0.75};});
+  const blob=buildPdf(pages);download(blob,fname('pdf',0,1),{text:null,img:null});
+  if(inFrame){$('mNote').textContent='PDF downloads may be blocked inside an embedded preview. Open this HTML file directly in your browser to download the PDF.';$('mImg').style.display='none';$('mText').style.display='none';$('mCopy').style.display='none';}}
+ catch(e){console.error(e);$('msg').insertAdjacentHTML('afterbegin',`<div class="err">PDF export failed: ${esc(e.message)}</div>`);}};
+
+/* ================= minimal vector PDF writer (rect/line/path/text) ================= */
+const WINANSI={0x20AC:128,0x201A:130,0x0192:131,0x201E:132,0x2026:133,0x2020:134,0x2021:135,0x02C6:136,0x2030:137,0x0160:138,0x2039:139,0x0152:140,0x017D:142,0x2018:145,0x2019:146,0x201C:147,0x201D:148,0x2022:149,0x2013:150,0x2014:151,0x02DC:152,0x2122:153,0x0161:154,0x203A:155,0x0153:156,0x017E:158,0x0178:159};
+function pdfStr(t){let o='(';for(const ch of t){let c=ch.codePointAt(0);
+  if(c===0x2212)c=45;else if(c===0x2192){o+='->';continue;}else if(c===0x2190){o+='<-';continue;}else if(c===0x2265){o+='>=';continue;}else if(c===0x2264){o+='<=';continue;}
+  else if(WINANSI[c])c=WINANSI[c];else if(c>255)c=63;
+  if(c===40||c===41||c===92)o+='\\'+String.fromCharCode(c);else if(c<32||c>126)o+='\\'+c.toString(8).padStart(3,'0');else o+=String.fromCharCode(c);}
+ return o+')';}
+const PDF_FAM={Helvetica:['Helvetica','Helvetica-Bold','Helvetica-Oblique','Helvetica-BoldOblique'],Times:['Times-Roman','Times-Bold','Times-Italic','Times-BoldItalic'],Courier:['Courier','Courier-Bold','Courier-Oblique','Courier-BoldOblique']};
+const PDF_CSS={Helvetica:'Helvetica, Arial, sans-serif',Times:'"Times New Roman", Times, serif',Courier:'"Courier New", Courier, monospace'};
+function pdfFamily(fam){const f=String(fam||'').split(',')[0].toLowerCase();if(/courier|mono|menlo|consolas/.test(f))return 'Courier';if(/times|georgia|garamond|cambria|serif/.test(f)&&!/sans/.test(f))return 'Times';return 'Helvetica';}
+function buildPdf(pages){
+ const fonts=[],gss=[];const fontRef=n=>{let i=fonts.indexOf(n);if(i<0){fonts.push(n);i=fonts.length-1;}return '/F'+(i+1);};
+ const gsRef=(ca,CA)=>{const k=ca+'|'+CA;let i=gss.indexOf(k);if(i<0){gss.push(k);i=gss.length-1;}return '/G'+(i+1);};
+ const N=v=>{const r=Math.round(v*1000)/1000;return Object.is(r,-0)?'0':String(r);};
+ const col=c=>{if(!c||c==='none')return null;c=c.trim().toLowerCase();if(c==='white')return[1,1,1];if(c==='black')return[0,0,0];
+  if(c[0]==='#'){let h=c.slice(1);if(h.length===3)h=h.split('').map(x=>x+x).join('');const n=parseInt(h,16);return[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255];}return[0,0,0];};
+ const mul=(A,B)=>[A[0]*B[0]+A[2]*B[1],A[1]*B[0]+A[3]*B[1],A[0]*B[2]+A[2]*B[3],A[1]*B[2]+A[3]*B[3],A[0]*B[4]+A[2]*B[5]+A[4],A[1]*B[4]+A[3]*B[5]+A[5]];
+ function parseTf(t){let M=[1,0,0,1,0,0];const re=/(\w+)\s*\(([^)]*)\)/g;let m;
+  while((m=re.exec(t))){const v=m[2].split(/[\s,]+/).filter(Boolean).map(Number);let T;
+   if(m[1]==='translate')T=[1,0,0,1,v[0]||0,v[1]||0];else if(m[1]==='scale')T=[v[0],0,0,v[1]==null?v[0]:v[1],0,0];
+   else if(m[1]==='rotate'){const a=(v[0]||0)*Math.PI/180,c=Math.cos(a),s=Math.sin(a);T=[c,s,-s,c,0,0];if(v.length>2)T=mul(mul([1,0,0,1,v[1],v[2]],T),[1,0,0,1,-v[1],-v[2]]);}
+   else if(m[1]==='matrix')T=v.slice(0,6);else continue;M=mul(M,T);}
+  return M;}
+ function pathOps(d){const t=d.match(/[a-zA-Z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g)||[];let i=0,cmd='',x=0,y=0,sx=0,sy=0;const o=[],n=()=>+t[i++];let guard=0;
+  while(i<t.length&&guard++<1e6){if(/^[a-zA-Z]$/.test(t[i]))cmd=t[i++];
+   switch(cmd){case'M':x=n();y=n();sx=x;sy=y;o.push(N(x)+' '+N(y)+' m');cmd='L';break;case'm':x+=n();y+=n();sx=x;sy=y;o.push(N(x)+' '+N(y)+' m');cmd='l';break;
+    case'L':x=n();y=n();o.push(N(x)+' '+N(y)+' l');break;case'l':x+=n();y+=n();o.push(N(x)+' '+N(y)+' l');break;
+    case'H':x=n();o.push(N(x)+' '+N(y)+' l');break;case'h':x+=n();o.push(N(x)+' '+N(y)+' l');break;
+    case'V':y=n();o.push(N(x)+' '+N(y)+' l');break;case'v':y+=n();o.push(N(x)+' '+N(y)+' l');break;
+    case'Z':case'z':o.push('h');x=sx;y=sy;if(i<t.length&&!/^[a-zA-Z]$/.test(t[i]))i++;break;default:i++;}}
+  return o.join(' ');}
+ function rectOps(x,y,w,h,r){if(!(r>0))return `${N(x)} ${N(y)} ${N(w)} ${N(h)} re`;r=Math.min(r,w/2,h/2);const k=r*0.5523;
+  return [`${N(x+r)} ${N(y)} m`,`${N(x+w-r)} ${N(y)} l`,`${N(x+w-r+k)} ${N(y)} ${N(x+w)} ${N(y+r-k)} ${N(x+w)} ${N(y+r)} c`,`${N(x+w)} ${N(y+h-r)} l`,
+   `${N(x+w)} ${N(y+h-r+k)} ${N(x+w-r+k)} ${N(y+h)} ${N(x+w-r)} ${N(y+h)} c`,`${N(x+r)} ${N(y+h)} l`,`${N(x+r-k)} ${N(y+h)} ${N(x)} ${N(y+h-r+k)} ${N(x)} ${N(y+h-r)} c`,
+   `${N(x)} ${N(y+r)} l`,`${N(x)} ${N(y+r-k)} ${N(x+r-k)} ${N(y)} ${N(x+r)} ${N(y)} c`,'h'].join(' ');}
+ function paint(el,ops,out,lineOnly){const A=k=>el.getAttribute(k);
+  const fill=lineOnly?null:col(A('fill')==null?'#000':A('fill')),stroke=col(A('stroke'));const sw=A('stroke-width')==null?1:+A('stroke-width');
+  const fo=A('fill-opacity')==null?1:+A('fill-opacity'),so=A('stroke-opacity')==null?1:+A('stroke-opacity');
+  if(!fill&&(!stroke||sw<=0))return;
+  if(fo<1||so<1)out.push(gsRef(N(fo),N(so))+' gs');
+  if(fill)out.push(fill.map(N).join(' ')+' rg');if(stroke&&sw>0){out.push(stroke.map(N).join(' ')+' RG',N(sw)+' w');if(A('stroke-linejoin')==='round')out.push('1 j');if(A('stroke-linecap')==='round')out.push('1 J');}
+  out.push(ops,fill&&stroke&&sw>0?'B':fill?'f':'S');}
+ function text(el,inh,out){const A=k=>el.getAttribute(k);
+  const fs0=+(A('font-size')||inh.fs),base={fam:A('font-family')||inh.fam,bold:A('font-weight')==='bold',it:A('font-style')==='italic',fill:A('fill')||'#000',fo:A('fill-opacity')==null?1:+A('fill-opacity'),fs:fs0};
+  const runs=[];for(const c of el.childNodes){if(c.nodeType===3){if(c.nodeValue)runs.push({...base,t:c.nodeValue,x:null});}
+   else if(c.nodeType===1){const B=k=>c.getAttribute(k);runs.push({fam:B('font-family')||base.fam,bold:B('font-weight')?B('font-weight')==='bold':base.bold,it:B('font-style')?B('font-style')==='italic':base.it,
+    fill:B('fill')||base.fill,fo:B('fill-opacity')==null?base.fo:+B('fill-opacity'),fs:B('font-size')?+B('font-size'):fs0,t:c.textContent,x:B('x')==null?null:+B('x')});}}
+  if(!runs.length)return;
+  for(const r of runs){r.pf=pdfFamily(r.fam);r.w=tw(r.t,r.fs,PDF_CSS[r.pf],r.bold,r.it);}
+  const anchor=A('text-anchor')||'start',db=A('dominant-baseline')||'auto';const x0=+(A('x')||0),y0=+(A('y')||0);
+  const total=runs.reduce((a,r)=>a+r.w,0);let cur=x0;if(!runs.some(r=>r.x!=null)){if(anchor==='middle')cur-=total/2;else if(anchor==='end')cur-=total;}
+  const dy=db==='central'||db==='middle'?fs0*0.35:db==='hanging'?fs0*0.76:0;
+  for(const r of runs){if(r.x!=null)cur=r.x;const c=col(r.fill)||[0,0,0];const fn=fontRef(PDF_FAM[r.pf][(r.bold?1:0)+(r.it?2:0)]);
+   out.push('q');if(r.fo<1)out.push(gsRef(N(r.fo),'1')+' gs');
+   out.push(`BT ${fn} ${N(r.fs)} Tf ${c.map(N).join(' ')} rg 1 0 0 -1 ${N(cur)} ${N(y0+dy)} Tm ${pdfStr(r.t)} Tj ET`,'Q');cur+=r.w;}}
+ function walk(el,inh,out){for(const c of el.children){const tag=c.tagName.toLowerCase();const tf=c.getAttribute('transform');
+   out.push('q');if(tf){const M=parseTf(tf);out.push(M.map(N).join(' ')+' cm');}
+   const A=k=>+(c.getAttribute(k)||0);
+   if(tag==='g'||tag==='svg')walk(c,{fam:c.getAttribute('font-family')||inh.fam,fs:inh.fs},out);
+   else if(tag==='rect')paint(c,rectOps(A('x'),A('y'),A('width'),A('height'),A('rx')),out);
+   else if(tag==='line')paint(c,`${N(A('x1'))} ${N(A('y1'))} m ${N(A('x2'))} ${N(A('y2'))} l`,out,true);
+   else if(tag==='path')paint(c,pathOps(c.getAttribute('d')||''),out);
+   else if(tag==='text')text(c,inh,out);
+   out.push('Q');}}
+ const streams=pages.map(pg=>{const doc=new DOMParser().parseFromString(pg.svg,'image/svg+xml');const root=doc.documentElement;
+  if(root.nodeName==='parsererror'||doc.querySelector('parsererror'))throw new Error('could not parse figure');
+  const vb=(root.getAttribute('viewBox')||`0 0 ${root.getAttribute('width')} ${root.getAttribute('height')}`).split(/[\s,]+/).map(Number);const k=pg.w/vb[2];
+  const out=[`1 0 0 -1 0 ${N(pg.h)} cm`,`${N(k)} 0 0 ${N(k)} ${N(-vb[0]*k)} ${N(-vb[1]*k)} cm`];
+  walk(root,{fam:root.getAttribute('font-family')||'Helvetica',fs:12},out);return out.join('\n');});
+ // assemble objects
+ const objs=[];const add=str=>{objs.push(str);return objs.length;};
+ add('<< /Type /Catalog /Pages 2 0 R >>');add('PAGES');
+ const fontIds=fonts.map(f=>add(`<< /Type /Font /Subtype /Type1 /BaseFont /${f} /Encoding /WinAnsiEncoding >>`));
+ const gsIds=gss.map(k=>{const [ca,CA]=k.split('|');return add(`<< /Type /ExtGState /ca ${ca} /CA ${CA} >>`);});
+ const res=`<< /Font << ${fonts.map((f,i)=>`/F${i+1} ${fontIds[i]} 0 R`).join(' ')} >> /ExtGState << ${gss.map((g,i)=>`/G${i+1} ${gsIds[i]} 0 R`).join(' ')} >> >>`;
+ const kids=pages.map((pg,i)=>{const c=add(`<< /Length ${streams[i].length} >>\nstream\n${streams[i]}\nendstream`);
+  return add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${N(pg.w)} ${N(pg.h)}] /Resources ${res} /Contents ${c} 0 R >>`);});
+ objs[1]=`<< /Type /Pages /Kids [${kids.map(k=>k+' 0 R').join(' ')}] /Count ${kids.length} >>`;
+ const info=add(`<< /Producer (TFBS Enhancer Map) /Title ${pdfStr(opt.title||'TFBS map')} >>`);
+ let pdf='%PDF-1.4\n';const offs=[];objs.forEach((o,i)=>{offs.push(pdf.length);pdf+=`${i+1} 0 obj\n${o}\nendobj\n`;});
+ const xref=pdf.length;pdf+=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`+offs.map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('');
+ pdf+=`trailer\n<< /Size ${objs.length+1} /Root 1 0 R /Info ${info} 0 R >>\nstartxref\n${xref}\n%%EOF`;
+ return new Blob([pdf],{type:'application/pdf'});
+}
+$('bTsv').onclick=()=>{const L=['Enhancer\tLabel\tLength\tFlipped\tTF_motif\tTF_label\tRelStart\tRelEnd\tShownStrand\tOrigStart\tOrigEnd\tOrigStrand\tScore'];
+ for(const e of visEnh())for(const d of dispSites(e,false))L.push([e.id,enhLabel(e.id),e.L,S.enhCfg[e.id].flip?'yes':'no',d.tf,tfLabel(d.tf),d.da+1,d.db,d.str,d.s.gs,d.s.ge,d.s.strand,isNaN(d.s.score)?'':d.s.score].join('\t'));
+ const t=L.join('\n');download(new Blob([t],{type:'text/tab-separated-values'}),'tfbs_relative_coords.tsv',{text:t});};
+/* ================= sessions ================= */
+function sessionObj(){return{app:'tfbs-map',version:3,saved:new Date().toISOString(),opt,texts:{sites:$('tSites').value,bed:$('tBed').value,fa:$('tFa').value},tfCfg:S.tfCfg,tfOrder:S.tfOrder,enhCfg:S.enhCfg,enhOrder:S.enhOrder,palIdx:S.palIdx};}
+function applySession(j){
+ if(!j||j.app!=='tfbs-map'||!j.texts)throw new Error('not a TFBS map session');
+ opt=Object.assign({},DEF,j.opt||{});drawPalSw();abSync();$('tSites').value=j.texts.sites||'';$('tBed').value=j.texts.bed||'';$('tFa').value=j.texts.fa||'';
+ Object.assign(S,{tfCfg:j.tfCfg||{},tfOrder:j.tfOrder||[],enhCfg:j.enhCfg||{},enhOrder:j.enhOrder||[],palIdx:j.palIdx||0});
+ for(const c of Object.values(S.enhCfg))if(c.sub==null)c.sub='';syncOpts();build();}
+function saveSession(){const t=JSON.stringify(sessionObj(),null,1);const nm=(opt.title||'tfbs_map').replace(/[^\w\-]+/g,'_')+'_session.json';
+ download(new Blob([t],{type:'application/json'}),nm,{text:t});}
+function loadSessionFile(f){const r=new FileReader();r.onload=()=>{try{applySession(JSON.parse(r.result));$('msg').insertAdjacentHTML('afterbegin',`<div class="ok">Session loaded from ${esc(f.name)}.</div>`);}catch(e){$('msg').insertAdjacentHTML('afterbegin',`<div class="err">${esc(f.name)}: could not read session file.</div>`);}};r.readAsText(f);}
+$('bSave').onclick=saveSession;$('bSave2').onclick=saveSession;
+$('bLoad2').onclick=()=>$('fSession2').click();
+['fSession','fSession2'].forEach(id=>$(id).addEventListener('change',ev=>{const f=ev.target.files[0];if(f)loadSessionFile(f);ev.target.value='';}));
+/* autosave to this browser */
+let asT=0;const LS='tfbs-enhancer-map-session-v1';
+function autosave(){clearTimeout(asT);asT=setTimeout(()=>{try{if(!$('tSites').value.trim()&&!$('tBed').value.trim())return;localStorage.setItem(LS,JSON.stringify(sessionObj()));$('autoNote').textContent='Autosaved in this browser at '+new Date().toLocaleTimeString()+'. Use “Save session” for a file you can keep or share.';}
+ catch(e){$('autoNote').textContent='Autosave unavailable here (browser storage blocked or data too large). Use “Save session” to keep your work.';}},1000);}
+
+/* ================= multi-file loading (picker + drag & drop) ================= */
+function sniff(name,text){const n=name.toLowerCase();
+ if(/\.json$/.test(n))return 'session';
+ if(/\.(fa|fasta|fna|fas|seq)$/.test(n)||/^\s*>/.test(text))return 'fasta';
+ if(/\.(bed|narrowpeak|broadpeak)$/.test(n))return 'bed';
+ const l=text.split(/\r?\n/).find(x=>x.trim()&&!/^(#|track|browser)/.test(x));if(!l)return 'sites';
+ const c=splitLine(l);const isInt=x=>/^\d+$/.test(x||'');
+ if(c.length>=7&&isInt(c[4])&&isInt(c[5]))return 'sites';
+ if(c.length>=3&&c.length<=12&&isInt(c[1])&&isInt(c[2])&&!(c.length>=7&&isInt(c[4])))return 'bed';
+ return 'sites';}
+function mergeTable(prev,add){if(!prev.trim())return add.trim();const h1=prev.split(/\r?\n/)[0],lines=add.trim().split(/\r?\n/);
+ if(lines[0]===h1)lines.shift();return prev.trim()+'\n'+lines.join('\n');}
+async function loadFiles(files){
+ files=[...files];if(!files.length)return;const sess=files.find(f=>/\.json$/i.test(f.name));
+ if(sess){loadSessionFile(sess);files=files.filter(f=>f!==sess);if(!files.length)return;}
+ const got={sites:[],bed:[],fasta:[]};
+ for(const f of files){const t=await f.text();const k=sniff(f.name,t);if(k!=='session')got[k].push({name:f.name,t});}
+ const notes=[];
+ if(got.sites.length){let v='';for(const x of got.sites)v=mergeTable(v,x.t);$('tSites').value=v;notes.push('TFBS: '+got.sites.map(x=>x.name).join(', '));}
+ if(got.bed.length){$('tBed').value=got.bed.map(x=>x.t.trim()).join('\n');notes.push('BED: '+got.bed.map(x=>x.name).join(', '));}
+ if(got.fasta.length){$('tFa').value=got.fasta.map(x=>x.t.trim()).join('\n');notes.push('FASTA: '+got.fasta.map(x=>x.name).join(', '));}
+ if(got.sites.length)resetCfg();
+ build();$('msg').insertAdjacentHTML('afterbegin',notes.map(n=>`<div class="ok">Loaded ${esc(n)}</div>`).join(''));}
+$('fAny').addEventListener('change',ev=>{loadFiles(ev.target.files);ev.target.value='';});
+let dragN=0;
+addEventListener('dragenter',ev=>{if([...(ev.dataTransfer?.types||[])].includes('Files')){dragN++;$('dropHint').style.display='flex';}});
+addEventListener('dragleave',()=>{if(--dragN<=0){dragN=0;$('dropHint').style.display='none';}});
+addEventListener('dragover',ev=>ev.preventDefault());
+addEventListener('drop',ev=>{ev.preventDefault();dragN=0;$('dropHint').style.display='none';if(ev.dataTransfer?.files?.length)loadFiles(ev.dataTransfer.files);});
+
+/* ================= example ================= */
+/* Built-in DUMMY example: invented CREs, random background sequence with illustrative
+   consensus-like motifs planted at the listed sites. Not real genomic data. */
+const DEMO={
+ cres:[{id:'enhA',chr:'chr2L',start:1000001,len:800,strand:'+',seed:11},
+       {id:'enhB',chr:'chr2L',start:1050001,len:950,strand:'-',seed:23},
+       {id:'enhC',chr:'chr3R',start:2000001,len:600,strand:'+',seed:37}],
+ motifs:{bicoid:'TAATCC',hunchback:'CAAAAAAT',Kruppel:'AACGGGTTAA',twist:'CACATG',dorsal:'GGGAAATTCC',zelda:'CAGGTAG'},
+ sites:{ // [TF, 1-based start within CRE, strand]
+  enhA:[['bicoid',120,'+'],['zelda',160,'+'],['hunchback',230,'-'],['bicoid',300,'-'],['Kruppel',395,'+'],['twist',407,'-'],['dorsal',520,'+'],['zelda',610,'-'],['hunchback',700,'+']],
+  enhB:[['zelda',80,'+'],['dorsal',190,'-'],['twist',260,'+'],['bicoid',330,'+'],['Kruppel',470,'-'],['hunchback',600,'+'],['twist',760,'-'],['zelda',850,'+']],
+  enhC:[['bicoid',60,'-'],['twist',150,'+'],['zelda',240,'+'],['hunchback',330,'-'],['Kruppel',450,'+'],['dorsal',500,'-']]}
+};
+function demoData(){const rnd=seed=>{let x=seed;return()=>{x=(x*1103515245+12345)&0x7fffffff;return(x>>16)&3;};};
+ const rcm=s=>s.split('').reverse().map(c=>({A:'T',T:'A',G:'C',C:'G'}[c])).join('');
+ const T=['Enhancer\tEnhStart\tEnhEnd\tTF_motif\tSiteStart\tSiteEnd\tStrand'],B=[],F=[];
+ for(const c of DEMO.cres){const r=rnd(c.seed);let seq=Array.from({length:c.len},()=>'ACGT'[r()]);const end=c.start+c.len-1;
+  for(const [tf,p,st] of DEMO.sites[c.id]){const m=DEMO.motifs[tf],ins=st==='-'?rcm(m):m;for(let i=0;i<m.length;i++)seq[p-1+i]=ins[i];
+   T.push([c.id,c.start,end,tf,c.start+p-1,c.start+p-1+m.length-1,st].join('\t'));}
+  B.push([c.chr,c.start-1,end,c.id,0,c.strand].join('\t'));
+  F.push('>'+c.id+' dummy example sequence',seq.join('').replace(/(.{70})/g,'$1\n').trim());}
+ return{sites:T.join('\n'),bed:B.join('\n'),fa:F.join('\n')};}
+$('bExample').onclick=()=>{resetCfg();opt.coord='1';opt.sitePos='auto';syncOpts();const d=demoData();
+ $('tSites').value=d.sites;$('tBed').value=d.bed;$('tFa').value=d.fa;build();
+ $('msg').insertAdjacentHTML('beforeend','<div class="warn">This is a dummy example (invented CREs and sequences) to show how the tool works.</div>');};
+
+/* ================= init ================= */
+buildOpts();syncOpts();drawPalSw();abSync();setTimeout(fitZoom,150);
+(()=>{let j=null;try{j=JSON.parse(localStorage.getItem(LS)||'null');}catch(e){}
+ if(j){try{applySession(j);$('msg').insertAdjacentHTML('afterbegin',`<div class="ok">Reopened your last session (autosaved ${esc(new Date(j.saved).toLocaleString())}). Click “Clear all” to start fresh.</div>`);return;}catch(e){}}
+ $('bExample').click();})();
+</script>
+</body>
+</html>

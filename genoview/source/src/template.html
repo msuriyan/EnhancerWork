@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GenoView — genome browser &amp; indel/SV explorer</title>
+<style>
+:root{
+  --page:#f4f4f1; --surface:#fcfcfb; --panel:#ffffff; --line:#dcdbd5; --line-soft:#ebeae5;
+  --ink:#0b0b0b; --ink-2:#52514e; --ink-3:#8a8984; --accent:#2a78d6; --accent-soft:#e3eefb;
+  --del:#e34948; --dup:#2a78d6; --inv:#6250d6; --tra:#eb6834; --ins:#1baf7a; --cnv:#eda100; --snv:#8a8984;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius:6px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font:13px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--page)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:4px 9px;line-height:1.3}
+button:hover{border-color:var(--ink-3)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button.primary:hover{filter:brightness(1.08)}
+button.ghost{border-color:transparent;background:transparent}
+button.ghost:hover{background:var(--line-soft)}
+button:disabled{opacity:.45;cursor:default}
+input[type=text],input[type=number],select{border:1px solid var(--line);border-radius:5px;padding:3px 6px;background:#fff}
+input[type=number]{width:64px}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+.app{display:grid;grid-template-rows:auto auto 1fr;height:100vh}
+/* header */
+.top{display:flex;align-items:center;gap:12px;padding:7px 12px;background:#1f2a37;color:#eef2f6}
+.brand{font-weight:700;letter-spacing:.3px;font-size:15px;display:flex;align-items:center;gap:7px}
+.brand svg{display:block}
+.brand small{font-weight:400;color:#9fb0c2;font-size:12px}
+.top .spacer{flex:1}
+.top button{background:#2c3a4b;border-color:#3c4c60;color:#eef2f6}
+.top button:hover{border-color:#7f93a8}
+.top .genome-name{font-family:var(--mono);font-size:12px;color:#c9d6e3;background:#2c3a4b;padding:3px 8px;border-radius:5px}
+/* UCSC-style nav */
+.nav{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:6px 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+.nav .grp{display:flex;align-items:center;gap:3px}
+.nav .grp > span{color:var(--ink-3);font-size:11px;margin-right:3px;text-transform:uppercase;letter-spacing:.4px}
+.nav button{padding:3px 7px;font-size:12px}
+#locus{width:300px;font-family:var(--mono);font-size:12.5px}
+#locusSize{color:var(--ink-2);font-size:12px;min-width:80px}
+.toggle.on{background:var(--accent-soft);border-color:var(--accent);color:#184f95}
+/* body */
+.main{display:grid;grid-template-columns:300px 1fr;min-height:0}
+.side{overflow:auto;border-right:1px solid var(--line);background:var(--panel);padding:10px;display:flex;flex-direction:column;gap:12px}
+.side h3{margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-2)}
+.drop{border:1.5px dashed var(--ink-3);border-radius:8px;padding:12px;text-align:center;color:var(--ink-2);cursor:pointer;background:var(--surface)}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft);color:#184f95}
+.drop b{color:var(--ink)}
+.drop .fmt{font-size:11px;color:var(--ink-3);margin-top:4px}
+.hint{font-size:11.5px;color:var(--ink-3)}
+.tracklist{display:flex;flex-direction:column;gap:6px}
+.trow{border:1px solid var(--line-soft);border-radius:6px;padding:6px 7px;background:var(--surface)}
+.trow .r1{display:flex;align-items:center;gap:6px}
+.trow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;font-size:12.5px}
+.trow .kind{font-size:10px;font-family:var(--mono);color:var(--ink-2);background:var(--line-soft);border-radius:3px;padding:0 4px;text-transform:uppercase}
+.trow .r2{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2)}
+.trow .r2 select{font-size:11.5px;padding:1px 3px}
+.trow .r2 input[type=number]{width:52px;font-size:11.5px;padding:1px 4px}
+.trow input[type=color]{width:22px;height:20px;border:1px solid var(--line);border-radius:4px;padding:0;background:none}
+.trow .x{padding:0 6px;font-size:14px;line-height:18px}
+.trow .grip{cursor:grab;color:var(--ink-3);font-size:13px;line-height:1;padding:0 2px;user-select:none}
+.trow.dragging{opacity:.4}
+.trow.dropbefore{box-shadow:0 -3px 0 var(--accent)}
+.trow.dropafter{box-shadow:0 3px 0 var(--accent)}
+.trow .mv,.trow .hstep{padding:0 4px;font-size:10px;line-height:18px;color:var(--ink-3)}
+.trow .hstep{font-size:13px;font-weight:700}
+.trow .ren{padding:0 5px;font-size:12px;line-height:18px;color:var(--ink-3)}
+.trow .nm{cursor:text}
+.trow .nmedit{flex:1;min-width:0;font-weight:600;font-size:12.5px;padding:1px 4px}
+.trow .sv{margin-top:5px;padding-top:5px;border-top:1px dashed var(--line);display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:11.5px}
+.trow .sv input[type=text]{width:90px;font-size:11.5px;padding:1px 4px}
+.hot summary{cursor:pointer;color:var(--ink-2)}
+.hot a{color:var(--accent);text-decoration:none;font-size:11.5px}
+.hot a:hover{text-decoration:underline}
+.swatch{width:10px;height:10px;border-radius:2px;display:inline-block;flex:none}
+.empty{color:var(--ink-3);font-size:12px;font-style:italic}
+/* browser + dock */
+.work{display:grid;grid-template-rows:1fr 6px var(--dockH, 42%);min-height:0;min-width:0}
+#igvWrap{overflow:auto;background:#fff;position:relative;min-height:0}
+#igvDiv{padding:4px 6px}
+.welcome{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:30px}
+.welcome .card{max-width:640px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px 26px}
+.welcome h2{margin:0 0 6px;font-size:18px}
+.welcome ol{padding-left:20px;margin:10px 0;color:var(--ink-2)}
+.welcome li{margin:4px 0}
+.welcome code{font-family:var(--mono);font-size:12px;background:var(--line-soft);padding:0 4px;border-radius:3px}
+.splitter{background:var(--line);cursor:row-resize}
+.work.full{grid-template-rows:0 1fr !important}
+.work.full #igvWrap{position:fixed;left:-300vw;top:0;width:var(--igvW,1100px);height:var(--igvH,500px);visibility:hidden}
+#btnFull.on{background:var(--accent-soft);color:#184f95}
+.splitter:hover{background:var(--ink-3)}
+.dock{display:grid;grid-template-rows:auto 1fr;min-height:0;background:var(--panel)}
+.tabs{display:flex;gap:2px;padding:0 10px;border-bottom:1px solid var(--line);background:var(--surface);align-items:flex-end}
+.tab{border:none;border-bottom:2px solid transparent;border-radius:0;background:none;padding:8px 12px 6px;color:var(--ink-2);font-weight:600}
+.tab.on{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .badge{font-weight:600;font-size:10.5px;background:var(--line-soft);border-radius:9px;padding:0 6px;margin-left:5px;color:var(--ink-2)}
+.tabs .spacer{flex:1}
+.pane{display:none;overflow:auto;padding:10px 12px;min-height:0}
+.pane.on{display:block}
+.params{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding-bottom:8px;border-bottom:1px solid var(--line-soft);margin-bottom:8px}
+.params label{display:flex;align-items:center;gap:5px;color:var(--ink-2);font-size:12px}
+.params .sep{width:1px;height:20px;background:var(--line)}
+.progress{height:4px;background:var(--line-soft);border-radius:2px;overflow:hidden;flex:1;min-width:120px;display:none}
+.progress > div{height:100%;width:0;background:var(--accent);transition:width .15s}
+.status{font-size:12px;color:var(--ink-2)}
+.chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.chip{border-radius:12px;padding:2px 9px;font-size:11.5px;display:inline-flex;align-items:center;gap:5px}
+.chip.off{opacity:.45}
+.chip .swatch{border-radius:50%}
+table.calls{border-collapse:collapse;width:100%;font-size:12px}
+table.calls th{position:sticky;top:0;background:var(--surface);text-align:left;font-weight:600;color:var(--ink-2);padding:5px 7px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none;z-index:1}
+table.calls th.num,table.calls td.num{text-align:right}
+table.calls td{padding:4px 7px;border-bottom:1px solid var(--line-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
+table.calls tr:hover td{background:#f6f8fb}
+table.calls tr.sel td{background:var(--accent-soft)}
+table.calls tbody tr{cursor:pointer}
+.pill{display:inline-flex;align-items:center;gap:5px;font-weight:600;font-size:11px;padding:1px 7px 1px 5px;border-radius:10px;background:var(--line-soft)}
+.pill i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.loc{font-family:var(--mono);font-size:11.5px}
+.ev{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.minibar{display:inline-block;height:6px;border-radius:3px;background:var(--accent);vertical-align:middle;margin-right:4px}
+.muted{color:var(--ink-3)}
+.graphhead{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:6px}
+.graphhead h4{margin:0;font-size:13px}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink-2);margin:4px 0 2px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend .ln{width:16px;height:0;border-top:2px solid}
+.tip{position:absolute;pointer-events:none;background:#fff;border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.12);border-radius:6px;padding:6px 8px;font-size:11.5px;display:none;z-index:5;white-space:nowrap}
+.tip b{font-family:var(--mono)}
+.callsplit{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+.callsplit.has{grid-template-columns:minmax(0,1.25fr) minmax(360px,1fr)}
+#detail{position:sticky;top:0}
+#callsTable{overflow-x:auto;min-width:0}
+.card2{border:1px solid var(--line-soft);border-radius:8px;padding:8px 10px;background:var(--surface)}
+.card2 h5{margin:0 0 4px;font-size:12px;color:var(--ink-2);font-weight:600}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1f2a37;color:#fff;padding:8px 14px;border-radius:7px;font-size:12.5px;display:none;z-index:99;max-width:70vw}
+.toast.err{background:#a52a2a}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
+.tile{border:1px solid var(--line-soft);background:var(--surface);border-radius:8px;padding:7px 12px;min-width:118px}
+.tile .v{font-size:20px;font-weight:650;font-variant-numeric:tabular-nums;line-height:1.15}
+.tile .l{font-size:11px;color:var(--ink-2)}
+.tile .v small{font-size:12px;font-weight:500;color:var(--ink-2)}
+.crgrid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:12px;align-items:start}
+.seqcell{font-family:var(--mono);font-size:11.5px;line-height:1.35;white-space:pre}
+.seqcell .r{color:var(--ink-3)}
+.seqcell .d{background:#fbe0df;color:#a52a2a}
+.seqcell .i{background:#d6f3e8;color:#0b6b48;font-weight:700}
+.seqcell .c{color:var(--del);font-weight:700}
+.sampbar{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.sampbar select{font-weight:600}
+.sitechip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:14px;padding:2px 10px;background:var(--surface);font-size:12px}
+.evchip{display:inline-flex;align-items:center;gap:3px;border:1px solid var(--line-soft);border-radius:10px;padding:0 2px 0 7px;background:var(--surface);margin:1px 0;font-size:12px}
+.evchip .mask{padding:0 4px;font-size:12px;line-height:16px;color:var(--ink-3)}
+.evchip .mask:hover{color:var(--del)}
+.calls .x{padding:0 5px;line-height:16px}
+.figmodal{position:fixed;inset:0;background:rgba(20,25,30,.45);z-index:2147483000;isolation:isolate;display:flex;align-items:center;justify-content:center}
+.figbox{background:#fff;border-radius:10px;width:min(1500px,96vw);height:min(940px,94vh);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.fighead{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.figbody{flex:1;display:grid;grid-template-columns:340px 1fr;min-height:0}
+.figctl{overflow:auto;padding:8px 12px;border-right:1px solid var(--line);background:var(--surface)}
+.figctl fieldset{border:1px solid var(--line-soft);border-radius:7px;margin:0 0 8px;padding:6px 8px}
+.figctl legend{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-2);padding:0 4px}
+.fe{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0;font-size:12px;color:var(--ink-2)}
+.fe input[type=text],.fe select{width:180px}
+.fe input[type=number]{width:64px}
+.fe-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:10px}
+.fe-grid .fe input[type=number]{width:52px}
+.fe-series{display:flex;gap:6px;align-items:center;margin:4px 0}
+.fe-series input[type=text]{flex:1}
+.fe-presets{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.fe-presets button{font-size:11px;padding:2px 6px}
+.figprev{display:flex;flex-direction:column;min-width:0;min-height:0}
+#fePrev{flex:1;overflow:auto;padding:16px;background:repeating-conic-gradient(#f3f3f0 0% 25%,#fff 0% 50%) 50%/20px 20px;display:flex;align-items:flex-start;justify-content:center}
+#fePrev svg{box-shadow:0 1px 6px rgba(0,0,0,.15);flex:none}
+.figexp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
+.rules{width:100%;border-collapse:collapse;font-size:12px}
+.rules th{text-align:left;color:var(--ink-2);font-weight:600;padding:4px 6px;border-bottom:1px solid var(--line)}
+.rules td{padding:4px 6px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+.rules input[type=text]{width:100%}
+.rules tr.off td{opacity:.45}
+.rulebar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+#btnHideRules.on{background:var(--accent-soft);border-color:var(--accent);color:#184f95}
+.an-li{padding:3px 6px;border-radius:5px;cursor:pointer;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.an-li:hover{background:var(--line-soft)}
+.an-li.on{background:var(--accent-soft);color:#184f95;font-weight:600}
+.help h4{margin:12px 0 4px}
+.help p,.help li{color:var(--ink-2);max-width:900px}
+.help .calcbox{border-left:3px solid var(--accent);padding:2px 0 2px 14px;margin:6px 0 10px}
+.help .calcbox li{margin:3px 0}
+.help code{font-family:var(--mono);font-size:12px;background:var(--line-soft);padding:0 4px;border-radius:3px}
+.modal{position:fixed;inset:0;background:rgba(20,25,30,.35);display:none;align-items:center;justify-content:center;z-index:50}
+.modal .box{background:#fff;border-radius:10px;padding:18px 20px;min-width:420px;max-width:560px}
+.modal h3{margin:0 0 10px}
+.row{display:flex;gap:8px;align-items:center;margin:8px 0}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 20 20"><path d="M3 4c4 0 4 12 8 12s4-12 6-12" stroke="#86b6ef" stroke-width="2" fill="none"/><path d="M3 16c4 0 4-12 8-12s4 12 6 12" stroke="#eb6834" stroke-width="2" fill="none"/></svg>
+      GenoView <small>genome browser · indel &amp; SV explorer</small>
+    </div>
+    <span class="genome-name" id="genomeName">no genome</span>
+    <button id="btnGenome" title="Load your own FASTA / 2bit genome">Load genome…</button>
+    <button id="btnHosted" title="UCSC-hosted assemblies (needs internet)">UCSC assembly…</button>
+    <div class="spacer"></div>
+    <button id="btnSession" title="Save the whole session (tracks, settings, analyses, figures) or reopen a saved one">Session…</button>
+    <button id="btnSVG" title="Add text boxes, arrows and boxes to the current browser view and export PNG (any dpi), JPEG, SVG or PDF">Export view…</button>
+    <button id="btnHelp">Help</button>
+  </header>
+
+  <div class="nav">
+    <div class="grp"><input id="locus" type="text" placeholder="chr1:10,000-20,000 or gene name" spellcheck="false"><button id="btnGo" class="primary">Go</button></div>
+    <span id="locusSize"></span>
+    <div class="grp"><span>Move</span>
+      <button data-move="-0.95" title="Move left 95%">&lt;&lt;&lt;</button><button data-move="-0.475" title="Move left 47.5%">&lt;&lt;</button><button data-move="-0.1" title="Move left 10%">&lt;</button>
+      <button data-move="0.1" title="Move right 10%">&gt;</button><button data-move="0.475" title="Move right 47.5%">&gt;&gt;</button><button data-move="0.95" title="Move right 95%">&gt;&gt;&gt;</button>
+    </div>
+    <div class="grp"><span>Zoom in</span><button data-zoom="1.5">1.5×</button><button data-zoom="3">3×</button><button data-zoom="10">10×</button><button data-zoom="base" title="Zoom to base level">base</button></div>
+    <div class="grp"><span>Zoom out</span><button data-zoom="0.6667">1.5×</button><button data-zoom="0.3333">3×</button><button data-zoom="0.1">10×</button><button data-zoom="0.01">100×</button><button data-zoom="chr" title="Whole chromosome">chr</button></div>
+    <div class="grp" title="Squeeze annotation tracks (BED/GTF/GFF…) to remove empty space; per-track settings are in the track list"><span>Layout</span><select id="compactSel"><option value="normal">normal</option><option value="compact">compact</option><option value="tight">tight</option></select></div>
+    <div class="grp"><span>Show</span><button class="toggle" id="tgCenter" title="Center line">center</button><button class="toggle" id="tgCursor" title="Cursor guide">cursor</button><button class="toggle on" id="tgLabels" title="Track name tags at the left of each track">track names</button><button class="toggle on" id="tgNames" title="Gene / feature names in all annotation tracks (GFF, GTF, BED, …); per-track switches are in the track list">gene names</button><button class="toggle on" id="tgIdeo" title="Chromosome ideogram at the top (screen and exports)">ideogram</button><button class="toggle on" id="tgIdeoBox" title="Red box marking the current region on the ideogram">region box</button><button class="toggle on" id="tgArrows" title="Strand arrows on genes / features in all annotation tracks">strand arrows</button></div>
+  </div>
+
+  <div class="main">
+    <aside class="side">
+      <section>
+        <h3>Load data</h3>
+        <div class="drop" id="drop">
+          <div><b>Drop files here</b> or click to choose</div>
+          <div class="fmt">Genome: FASTA (.fa/.fasta/.fna, +.fai optional), .2bit, bgzip FASTA (+.fai+.gzi), chrom.sizes<br>
+          Tracks: BAM+BAI/CSI, CRAM+CRAI, bigWig, bigBed, BED, narrowPeak, bedGraph, WIG, GFF3/GTF, VCF(.gz+.tbi), BEDPE, SEG, interact</div>
+        </div>
+        <input type="file" id="fileInput" multiple hidden>
+        <div class="hint" style="margin-top:5px">Select data files together with their indexes. Nothing leaves your computer.</div>
+      </section>
+      <section>
+        <h3>Tracks</h3>
+        <div class="tracklist" id="trackList"><div class="empty">No tracks loaded.</div></div>
+      </section>
+      <section id="overlaySec" style="display:none">
+        <h3>Overlay signal tracks</h3>
+        <div class="hint">Tick two or more bigWig / bedGraph / coverage tracks below to draw them on one shared axis, like a UCSC multiWig.</div>
+        <div id="overlayList" style="margin:6px 0;display:flex;flex-direction:column;gap:3px"></div>
+        <button id="btnOverlay">Create overlay track</button>
+      </section>
+    </aside>
+
+    <section class="work" id="work">
+      <div id="igvWrap">
+        <div id="igvDiv"></div>
+        <div class="welcome" id="welcome"><div class="card">
+          <h2>Start by loading a genome</h2>
+          <ol>
+            <li>Drop your <code>genome.fa</code> (the <code>.fai</code> index is built for you if missing) — or a <code>.2bit</code>, or pick a UCSC assembly.</li>
+            <li>Drop alignments and signal: <code>.bam</code> + <code>.bai</code>, <code>.bw</code>, <code>.bed</code>, <code>.gff3</code>, <code>.vcf.gz</code> + <code>.tbi</code>…</li>
+            <li>Open <b>Variants &amp; SVs</b> below, choose which BAMs to analyse (give BAMs the same group name to merge them) and press <b>Analyse view</b>.</li>
+            <li>Click any call to jump to it and draw its depth graph.</li>
+          </ol>
+          <div class="hint">Only BAMs? Drop them without a genome and GenoView will build a sequence-less genome from the BAM header.</div>
+        </div></div>
+      </div>
+      <div class="splitter" id="splitter" title="Drag to resize"></div>
+      <div class="dock">
+        <div class="tabs">
+          <button class="tab on" data-tab="calls">Variants &amp; SVs <span class="badge" id="nCalls">0</span></button>
+          <button class="tab" data-tab="depth">Depth graph</button>
+          <button class="tab" data-tab="junc">Splice junctions <span class="badge" id="nJunc">0</span></button>
+          <button class="tab" data-tab="crispr">CRISPR edits</button>
+          <button class="tab" data-tab="help">Help</button>
+          <div class="spacer"></div>
+          <button id="btnFull" class="ghost" style="margin:4px 0" title="Use the whole window for the analysis panels (each tab full page); click again to return to the browser">⤢ Full page</button>
+        </div>
+
+        <div class="pane on" id="pane-calls">
+          <div class="params">
+            <label>Data <select id="pLib"><option value="dna">DNA (WGS / WES / ChIP / ATAC)</option><option value="rna">RNA-seq (spliced)</option></select></label>
+            <label>Region <select id="pRegion"><option value="view">Current view</option><option value="chr">Whole chromosome</option><option value="custom">Custom…</option></select></label>
+            <input type="text" id="pCustom" placeholder="chr1:1-500000" style="display:none;width:170px;font-family:var(--mono)">
+            <span class="sep"></span>
+            <label title="Ignore reads below this mapping quality">min MAPQ <input type="number" id="pMapq" value="20" min="0" max="255"></label>
+            <label title="Events at least this long are structural variants">SV ≥ <input type="number" id="pMinSV" value="50" min="10"> bp</label>
+            <label title="Reads that must support a call">support ≥ <input type="number" id="pSupport" value="3" min="1"></label>
+            <label title="Small-indel allele fraction cut-off">AF ≥ <input type="number" id="pAF" value="0.1" step="0.05" min="0" max="1"></label>
+            <label title="Discordant pair = insert > median + k × MAD">insert k <input type="number" id="pK" value="5" step="0.5" min="1"></label>
+            <label><input type="checkbox" id="pDup" checked> skip duplicates</label>
+            <span class="sep"></span>
+            <button class="primary" id="btnRun">Analyse view</button>
+            <button id="btnCancel" style="display:none">Cancel</button>
+            <div class="progress" id="prog"><div></div></div>
+            <span class="status" id="runStatus"></span>
+          </div>
+          <div class="params" id="svFilters" style="border-bottom:none;padding-bottom:4px;margin-bottom:4px">
+            <label title="Indel/SV lengths to hide, e.g. 1-2 (all 1–2 bp), 3, <10, >100000">hide sizes <input type="text" id="fSize" placeholder="e.g. 1-2, <10" style="width:110px"></label>
+            <label title="Only keep calls overlapping these regions (others hidden)">only in <input type="text" id="fROI" placeholder="chr1:100,000-120,000 …" style="width:220px;font-family:var(--mono)"></label>
+            <button id="fMaskBtn" title="Hide calls matching known variants / polymorphisms from a BED or VCF file">Mask known variants (BED/VCF)…</button>
+            <input type="file" id="fMaskFile" accept=".bed,.vcf,.txt,.bedpe,.tsv" multiple hidden>
+            <span class="status" id="fMaskInfo"></span>
+            <label><input type="checkbox" id="fShowHidden"> show hidden</label>
+            <span class="status" id="fHiddenInfo"></span>
+          </div>
+          <div class="chips" id="chips"></div>
+          <div class="callsplit"><div id="callsTable"><div class="empty">Load one or more BAM files, then press <b>Analyse view</b>. Calls appear here: small indels from CIGARs; deletions, duplications, inversions, translocations and insertions from split reads, discordant pairs and soft-clips; and copy-number changes from read depth.</div></div>
+            <div id="detail" style="display:none">
+              <div class="card2"><h5 id="detailTitle">Selected call</h5><div id="detailChart" class="chart"></div>
+                <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:4px"><button id="btnDetSVG">SVG</button><button id="btnDetPNG">PNG</button><button id="btnDetAnn">Annotate…</button></div></div>
+              <div class="card2" style="margin-top:8px"><h5>Supporting evidence by sample / group</h5><div id="evChart" class="chart"></div><div id="evTable"></div></div>
+            </div></div>
+        </div>
+
+        <div class="pane" id="pane-depth">
+          <div class="graphhead">
+            <h4 id="depthTitle">Read depth</h4>
+            <label class="status">Scale <select id="gMode"><option value="norm">Copy number (2 × depth / median)</option><option value="raw">Raw depth (×)</option><option value="log2">log2 ratio vs control</option></select></label>
+            <label class="status"><input type="checkbox" id="gPooled" checked> pooled (all BAMs)</label>
+            <label class="status"><input type="checkbox" id="gCalls" checked> shade calls</label>
+            <div style="flex:1"></div>
+            <button id="btnDepthTrack" title="Add the depth lines as one overlay track in the browser">Add to browser</button>
+            <button id="btnDepthBG">bedGraph</button>
+            <button id="btnDepthSVG">SVG</button>
+            <button id="btnDepthPNG">PNG</button>
+            <button id="btnDepthAnn" class="primary" title="Add text boxes / arrows and export at any dpi">Annotate &amp; export…</button>
+          </div>
+          <div id="depthChart" class="chart"><div class="empty">Run an analysis to draw read depth for each sample / merged group.</div></div>
+        </div>
+
+        <div class="pane" id="pane-junc">
+          <div class="graphhead"><span class="status" id="juncInfo">Run an analysis with Data = RNA-seq to collect splice junctions (CIGAR N operations).</span><div style="flex:1"></div><button id="btnJuncTrack">Show as arcs in browser</button><button id="btnJuncBED">Junctions BED</button></div>
+          <div id="juncTable"></div>
+        </div>
+
+        <div class="pane" id="pane-crispr">
+          <div class="params">
+            <label title="One or more guides (protospacer 5'→3', no PAM), separated by spaces or commas — or cut positions chr:pos (cut after that base)">Guides <input type="text" id="cTarget" placeholder="guide1 guide2 …  or  chr1:100,031 chr1:100,198" style="width:330px;font-family:var(--mono)"></label>
+            <label>Nuclease <select id="cNuc"></select></label>
+            <button id="cFind">Find in view</button>
+            <span class="sep"></span>
+            <label title="Which indels are counted">Count indels in <select id="cMode"><option value="cut">cut site ± window</option><option value="roi">regions of interest only</option></select></label>
+            <label id="cWinLbl" title="Indels must overlap cut ± this many bp to count">± <input type="number" id="cWin" value="5" min="0" max="500"> bp</label>
+            <input type="text" id="cROI" placeholder="chr1:100,020-100,045  chr1:100,190-100,210" style="display:none;width:300px;font-family:var(--mono)" title="Only indels overlapping these regions are counted; everything else is hidden. Reads must span each region.">
+            <span class="sep"></span>
+            <label title="Detected automatically from read lengths on the first run; change it any time">Reads <select id="cReads"><option value="short">Short reads (Illumina / amplicon)</option><option value="long">Long reads (ONT / PacBio)</option></select></label>
+            <label title="Indels: deletions and insertions are both counted. Deletions only: insertions are ignored everywhere (edited %, alleles, size spectrum, bar plot), and the size distribution adds up to 100% of deletions.">Count <select id="cKinds"><option value="DI">indels (deletions + insertions)</option><option value="D">deletions only</option></select></label>
+            <label title="Region scanned for large deletions (CIGAR or split reads)">flank ± <input type="number" id="cFlank" value="3000" min="100" step="500"> bp</label>
+            <label>min MAPQ <input type="number" id="cMapq" value="20" min="0"></label>
+            <label title="Indels smaller than this are ignored unless they touch the cut (sequencing-error filter)">min indel off-cut <input type="number" id="cMinIndel" value="1" min="1" max="10"> bp</label>
+            <label title="Ignore 1–2 bp indels that lengthen/shorten a homopolymer (long-read error)"><input type="checkbox" id="cHp"> homopolymer filter</label>
+            <label title="Merge alleles whose breakpoints differ by ≤ this many bp (long-read jitter)">merge ± <input type="number" id="cMerge" value="0" min="0" max="10"> bp</label>
+            <label title="Indel lengths to ignore, e.g. 1-2 (all 1–2 bp indels), 9, >5000, <3">ignore sizes <input type="text" id="cIgnore" placeholder="e.g. 1-2, >5000" style="width:110px"></label>
+            <span class="sep"></span>
+            <button class="primary" id="cRun">Analyse edits</button>
+            <a href="#help-calc" id="cHowCalc" style="font-size:12px" title="Exactly how reads and indels are counted and the percentages computed">How is this calculated?</a>
+            <span class="status" id="cStatus"></span>
+          </div>
+          <div class="chips" id="cBams"></div>
+          <input type="file" id="cBamInput" multiple accept=".bam,.bai,.csi" hidden>
+          <div class="chips" id="cSites"></div>
+          <div id="cReport"><div class="empty">Load indexed BAMs of your crispants (short or long reads), enter the guide sequence (or the cut position) and press <b>Analyse edits</b>. Each sample is reported on its own: no control is needed. Every read spanning the cut-site window is classified as unmodified or as an indel allele; indel sizes are shown as an empirical distribution standardised to % of reads, so samples sequenced to different depths read on the same scale.</div></div>
+        </div>
+
+        <div class="pane help" id="pane-help">
+          <h4>What GenoView is</h4>
+          <p>A local, single-file genome browser built on <b>igv.js</b> (the web version of IGV), with UCSC-style navigation and an analysis panel for indels and structural variants. Files are read straight from your disk by the browser — nothing is uploaded. Use Chrome, Edge or Firefox.</p>
+          <h4>Loading</h4>
+          <ul>
+            <li><b>Genome</b>: FASTA (indexed for you if there is no <code>.fai</code>; lines must be equal width), bgzipped FASTA with <code>.fai</code> + <code>.gzi</code>, <code>.2bit</code>, or a <code>chrom.sizes</code> file (no sequence). Plain <code>.fa.gz</code> is decompressed in memory (fine for small genomes).</li>
+            <li><b>Indexes</b> are matched by name: <code>x.bam</code> ↔ <code>x.bam.bai</code> or <code>x.bai</code>; <code>x.vcf.gz</code> ↔ <code>x.vcf.gz.tbi</code>; <code>.csi</code>, <code>.crai</code>, <code>.idx</code> likewise. Drop data and index files together.</li>
+            <li><b>Finding your reads</b>: each BAM is scanned in the background (small/targeted BAMs exactly, large ones via the index) to build a <i>read density</i> track that shows at every zoom level, and a clickable list of read regions under the BAM in the track list. If the view has no reads after loading, GenoView jumps to them. Small BAMs also draw reads when zoomed out much further than IGV's usual 30 kb.</li>
+            <li><b>Chromosome names</b>: <code>chr1</code> and <code>1</code> are matched automatically for analysis.</li>
+          </ul>
+          <h4>Track controls</h4>
+          <p>Annotation tracks (GFF/GTF/BED/bigBed/VCF…) have <i>names</i> and <i>strand arrows</i> switches in the track list; the top-bar <b>gene names</b> / <b>strand arrows</b> / <b>track names</b> buttons switch them for all tracks at once. Hidden labels also stay hidden in exported figures.</p>
+          <p>Each BAM has a <b>sort</b> menu: <i>largest deletion first</i>, <i>smallest deletion first</i>, <i>largest indel first</i> (deletions from CIGARs and from split reads, anywhere in the view) or <i>random</i> (↻ shuffles again), plus IGV's base / strand / start / mapping quality / insert size sorts at the centre of the view. The sort is re-applied whenever you move.</p>
+          <p><b>Arranging panels</b>: drag a track by ⠿ in the track list (or use ▲ ▼) to change its position; <b>−</b> / <b>+</b> or the <i>h</i> box change its height, and BAMs have a separate coverage-panel height (<i>cov h</i>). Dragging tracks inside the browser keeps the list in step.</p>
+          <p>Click a track's name (or ✎) to rename it — the new name is used in the browser, the CRISPR sample lists, figures and exports. Each track in the left panel has a UCSC-style visibility (<i>hide / dense / squish / pack / full</i>), colour and height. Right-click a track in the browser for the full IGV menu (sorting, colouring by strand / insert size / pair orientation, view-as-pairs, autoscale, data range…).</p>
+          <h4>Variant &amp; SV detection</h4>
+          <ul>
+            <li><b>Small indels</b>: insertions/deletions in read CIGARs shorter than the SV size, clustered by position and length; allele fraction = supporting reads / depth.</li>
+            <li><b>Structural variants</b>: <b>split reads</b> (SA tag) give exact breakpoints; <b>discordant pairs</b> (insert &gt; median + k·MAD, wrong orientation, or mate on another chromosome) give approximate ones; long CIGAR deletions/insertions and soft-clip pile-ups add support. Types: DEL, DUP (tandem), INV, INS, TRA (inter-chromosomal).</li>
+            <li><b>Read-depth CNVs</b>: depth binned across the region, compared with the sample's median (or with the BAM marked <i>control</i>), smoothed and segmented into gains and losses.</li>
+            <li><b>RNA-seq mode</b>: <code>N</code> operations are splice junctions, not deletions; long inserts from intron-spanning pairs are ignored; depth CNV calling is off.</li>
+            <li><b>Hiding calls</b>: <i>hide sizes</i> removes calls by length (<code>1-2</code>, <code><10</code>, <code>>100000</code>); <i>only in</i> keeps calls overlapping your regions of interest; <b>⊘</b> on a row hides that call; <i>Mask known variants</i> hides calls matching a BED/VCF of known polymorphisms (small indels: same position ±3 bp; SVs: ≥ 50% reciprocal overlap). Hidden calls are left out of the depth shading and exports; tick <i>show hidden</i> to see them.</li>
+            <li><b>Merging BAMs</b>: give several BAMs the same <i>group</i> name; their reads are pooled for calling and their depth summed in graphs. The <i>pooled</i> line in the depth graph always sums every analysed BAM.</li>
+            <li>Insert size is estimated from properly-oriented pairs inside the region. Region size is not capped, but whole-chromosome scans of deep human BAMs take minutes.</li>
+          </ul>
+          <p>The caller is designed for exploring and visualising evidence, not as a replacement for a dedicated SV caller (Manta, DELLY, Sniffles…). You can load those callers' VCFs as tracks and compare.</p>
+          <h4>CRISPR edits (crispants, G0 mosaics)</h4>
+          <ul>
+            <li>Each BAM is analysed and reported on its own: no control or comparison. Enter the guide (20-nt protospacer without PAM; the PAM and strand are found in the current view) or type the cut position as <code>chr:pos</code> (cut after that base). SpCas9/SaCas9 cut 3 bp 5′ of the PAM; Cas12a ~18 nt after a 5′ TTTV PAM.</li>
+            <li>A read counts if its alignment (including split/supplementary parts) spans cut ± window. Indels overlapping the window define its allele; deletions ≥ 50 bp, from CIGAR or from split alignments, are flagged as <i>large</i>. Reads soft-clipped right at the cut are listed as <i>unresolved</i> (often large insertions or vector integration).</li>
+            <li><b>Histogram</b>: net indel size (insertions − deletions) per read, as % of spanning reads (or % of edited reads), coloured by frame. Bars at the ends collect everything beyond the range. <b>Cumulative</b> shows the empirical CDF.</li>
+            <li><b>Long reads</b>: detected automatically on the first run (median aligned read length &gt; 1 kb) and the long-read settings are applied: ± 10 bp window, 10 kb flank, homopolymer filter, 1–2 bp indels ignored unless they touch the cut, ± 2 bp allele merging. Percentages are then approximate (± a few %), because sequencing errors near the cut cannot be fully separated from edits.</li>
+            <li><b>Count: indels or deletions only</b>: <i>deletions only</i> ignores insertions everywhere (edited %, alleles, size distribution, bar plot) and shows the size distribution as % of deletions, adding up to 100%. See <a href="#help-calc">How the size distribution is calculated</a>.</li>
+            <li><b>Several guides</b>: enter all guides (or cut positions) separated by spaces. Each cut is reported separately, plus a combined target that classifies reads across all cuts and labels deletions between cuts as <i>dropouts</i>. Untick a cut to leave it out.</li>
+            <li><b>Leaving indels out</b>: <i>ignore sizes</i> drops indels by length (e.g. <code>1-2</code>, <code>>5000</code>); <b>⊘</b> on any indel in the allele table hides that exact indel (inherited polymorphism, SNP-linked indel, alignment artefact) and reads carrying only it count as unmodified; <i>Count indels in → regions of interest</i> restricts counting to the regions you type. All of these recalculate instantly without re-reading the BAMs.</li>
+            <li><b>Indel size spectrum</b>: all indels in all cut windows (or regions) of a sample, counted once per read, binned small → large (default 1–20, 21–50 … >2000 bp; custom cut-points allowed), deletions and insertions separately. With several BAMs ticked you also get a <i>study</i> view: reads pooled, or the mean ± SD of per-sample percentages (each animal weighted equally), plus a study summary table. <b>Edit figure &amp; export</b> lets you change every text, font, size, colour, layout and figure size, and export PNG (150–1200 dpi, DPI stored in the file), SVG, PDF and the data table.</li>
+            <li><b>Per-sample bar plot</b> (with 2 or more BAMs): one bar per sample for the selected target — % reads carrying a deletion (or % edited, frameshift, in-frame, large deletion, unmodified), each as a percentage of that sample's reads spanning the counting window. Order, colour (or colour by the BAM's group) and value labels can be changed; <b>Edit &amp; export…</b> adds text and saves PNG at any dpi, SVG or PDF.</li>
+            <li>Mosaicism in G0: the number of distinct edited alleles ≥ 5% and ≥ 1% is reported; with ~2 alleles per diploid cell, more alleles imply mosaic editing.</li>
+          </ul>
+          <h4 id="help-calc">How the size distribution is calculated (CRISPR tab)</h4>
+          <div class="calcbox">
+          <p>Every number is recalculated from the reads in your BAM files — nothing is estimated or smoothed.</p>
+          <ol>
+            <li><b>Which reads count.</b> A read is its primary alignment plus its supplementary (split) alignments on the same chromosome and strand. Secondary, duplicate and unmapped records and reads below <i>min MAPQ</i> are skipped. A read is counted only if its aligned span covers the whole counting window — <code>cut − W … cut + W</code> (W = the ± window) for every cut, or each region of interest. These are the <b>spanning reads (n)</b>.</li>
+            <li><b>Which events count.</b> Deletions come from CIGAR <code>D</code> and from the gap between two split alignments of the same read (large deletions in long reads). Insertions come from CIGAR <code>I</code>. An event counts only if it overlaps the window. Each distinct event is counted <b>once per read</b>.</li>
+            <li><b>Filters</b> (all optional, all shown in the panel): <i>Count → deletions only</i> drops insertions; events ⊘-hidden as polymorphisms are dropped; <i>ignore sizes</i> drops the sizes you list; the <i>homopolymer filter</i> drops 1–2 bp indels that only lengthen or shorten a run of the same base; <i>min indel off-cut</i> drops events smaller than that size unless they touch the cut. Long-read settings use these to remove sequencing errors.</li>
+            <li><b>Size</b> = length of the deletion (bases removed from the reference) or insertion (bases added), in bp.</li>
+            <li><b>Binning.</b> Sizes are grouped into the bins chosen in the figure editor (equal width, ranges such as 1–20, 21–50 … &gt;2000 bp, log, or your own cut-points). Keep the last <i>&gt; max</i> bar on, otherwise events above the axis range are not drawn and the bars no longer add up to 100%.</li>
+            <li><b>Y value</b> (figure editor):
+              <ul>
+                <li><b>% of deletions</b> (deletions-only mode) = deletions in the bin ÷ all counted deletions × 100. <b>The bars add up to 100%.</b></li>
+                <li><b>% of all indel events</b> (indel mode) = events in the bin ÷ all counted deletions + insertions × 100. Deletion and insertion bars together add up to 100%.</li>
+                <li><b>% of reads</b> = events in the bin ÷ spanning reads × 100 — how common each size is among all reads, edited or not. This does not add up to 100%.</li>
+                <li><b>count</b> = number of events.</li>
+              </ul></li>
+            <li><b>Several samples (the whole dataset).</b> <i>Reads pooled</i> adds up the event counts of all samples and divides by the pooled total, so samples with more reads weigh more. <i>Mean ± SD</i> computes each sample's percentages first and then the mean and SD across samples, so every animal counts equally (samples with no deletions, e.g. uninjected, have no distribution and are left out of the % of deletions mean).</li>
+            <li><b>Per-sample bar plot.</b> % reads with a deletion = spanning reads carrying at least one counted deletion (within the ≥ / ≤ size limits you set) ÷ spanning reads × 100.</li>
+          </ol>
+          <p><b>Worked example</b> (deletions only): 4,000 spanning reads, 2,183 counted deletions, 960 of them 7 bp → the 7 bp bar is 960 / 2,183 = 44.0% of deletions (and 960 / 4,000 = 24.0% of reads).</p>
+          <p><b>Checking the numbers.</b> <i>Data TSV</i> in the figure editor exports every bin and the exact count for every length. The script <code>verify_spectrum.py</code> repeats the same calculation independently with pysam: on the test data (short reads and Nanopore long reads, both modes) its counts are identical to GenoView's.</p>
+          </div>
+          <h4>Running in the background</h4>
+          <p>GenoView keeps working while you use other tabs (it avoids the timers Chrome slows down in hidden tabs and holds a lock that stops Chrome freezing the page). Chrome's <i>Memory Saver</i> can still unload a tab you haven't looked at for a long time; GenoView asks before the page is closed or unloaded, and you can exempt it in <code>chrome://settings/performance</code> → <i>Always keep these sites active</i>.</p>
+          <h4>Annotating figures</h4>
+          <p><b>Export view…</b> (top bar), <b>Annotate…</b> buttons next to the depth and CRISPR charts, and <b>Annotate…</b> in the figure editor open the current figure on a canvas where you can add any number of text boxes (font, size, colour, bold/italic/underline, alignment, background, border, rotation, multi-line), arrows and highlight boxes, drag them into place, add margins for labels outside the figure, and export PNG or JPEG at 96–1200 dpi or any custom dpi, SVG (vector) or PDF. Annotations are kept while the page is open, so re-exporting at another dpi is one click.</p>
+          <h4>Layout &amp; figures</h4>
+          <p><b>⤢ Full page</b> (right of the analysis tabs) gives each analysis tab the whole window; click again to return to the browser. <b>Layout</b> (top bar) squeezes all annotation tracks — <i>compact</i> or <i>tight</i> rows, panels shrink to their content — and each annotation track has its own <i>rows</i> setting. <b>ideogram</b> / <b>region box</b> hide the chromosome drawing or just its red current-region box. In <b>Export view</b>, <i>Crop</i> trims the figure and <i>Auto-crop</i> cuts it to the drawn content.</p>
+          <h4>Sessions</h4>
+          <p><b>Session…</b> (top bar) saves a small <code>.genoview.json</code> with everything except the data: genome and track files (by name and size), track order, names, colours, heights, display modes, coverage/reads, sorting, gene-name/arrow switches, the position, Variants &amp; SVs settings/filters/hidden calls/masks, CRISPR guides, settings and hidden indels, figure styles and annotations. To reopen: <b>Session… → Open session file</b> (or drop the .json on the page), then <b>Choose data folder</b> — files are matched by name and size, and the analyses are re-run. Recently saved sessions are listed for one-click reopening. Browsers never give web pages file paths, which is why the folder has to be chosen once per reopen. Session files carry a format version; older sessions open in newer GenoView builds, and newer sessions load what an older build understands.</p>
+          <h4>Exports</h4>
+          <p>Calls: VCF, BED, BEDPE, TSV. Depth: bedGraph per group, SVG/PNG figures. Browser view: SVG.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="modal" id="hostedModal"><div class="box">
+  <h3>Load a UCSC assembly</h3>
+  <p class="hint">Streams the assembly's .2bit sequence from hgdownload.soe.ucsc.edu — needs internet. Add gene annotation by loading a GTF/GFF/bigBed file afterwards.</p>
+  <div class="row"><select id="hostedSel">
+    <option value="hg38">Human hg38</option><option value="hg19">Human hg19</option><option value="hs1">Human T2T hs1</option>
+    <option value="mm39">Mouse mm39</option><option value="mm10">Mouse mm10</option><option value="dm6">Fly dm6</option>
+    <option value="danRer11">Zebrafish danRer11</option><option value="ce11">Worm ce11</option><option value="galGal6">Chicken galGal6</option>
+    <option value="rn7">Rat rn7</option><option value="sacCer3">Yeast sacCer3</option><option value="xenTro10">Xenopus xenTro10</option>
+  </select> or UCSC db name <input type="text" id="hostedFree" placeholder="e.g. apiMel3" style="width:120px"></div>
+  <div class="row" style="justify-content:flex-end"><button id="hostedCancel">Cancel</button><button class="primary" id="hostedGo">Load</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+<script>/*__BUNDLE__*/</script>
+</body>
+</html>
