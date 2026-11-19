@@ -1,0 +1,12 @@
+pGL3 GenBank feature annotations
+
+All six FASTA-equivalent nucleotide sequences are UNCHANGED from the previously generated GenBank files.
+
+Backbone features: luc+ CDS; SV40 late poly(A) signal; RVprimer4; ColE1 origin landmark and ori region; AmpR CDS and promoter; f1 ori; upstream synthetic poly(A) signal; transcriptional pause site; RVprimer3; GLprimer2.
+Construct-specific inserts: Dll promoter, CREs and spacers as previously annotated.
+Fourteen common restriction enzymes were searched by recognition sequence; sites are annotated only where exact matches occur.
+
+Basis: user-supplied pGL3-Basic vector diagram and Word document; Promega pGL3 Luciferase Reporter Vectors Technical Manual TM033 (pGL3 Basic sequence reference points); NovoPro pGL3-Basic sequence annotated features at https://www.novoprolabs.com/vector/V11544
+Published reference GenBank starting position is offset from the user pGL3-Basic sequence, so features were transferred by uniquely matching the complete nucleotide sequence of each feature, not by blindly copying numerical coordinates.
+NOTE: origin marker 2318 is a point landmark, not the full origin; an ori region is separately annotated.
+NOTE: the source diagram is schematic; feature placement follows exact sequence matches. Any additional biological function not established by the sources has not been assumed.
