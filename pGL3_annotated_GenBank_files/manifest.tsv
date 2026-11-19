@@ -1,0 +1,7 @@
+plasmid	length_bp	annotations	luc+	AmpR	ori	f1_ori	restriction_sites
+pGL3-Basic	4818	27	1	1	1	1	18
+pGL3-Dll1025-spacer-Dll promoter	6708	27	1	1	1	1	16
+pGL3-Dll1277-spacer-Dll319-spacer-Dll1025-spacer-Dll promoter	8611	33	1	1	1	1	18
+pGL3-Dll1277-spacer-Dll promoter	6960	27	1	1	1	1	16
+pGL3-Dll319-spacer-Dll promoter	6007	26	1	1	1	1	15
+pGL3-Dll promoter	5532	24	1	1	1	1	15

@@ -1,0 +1,197 @@
+LOCUS       pGL3_1                  4818 bp    DNA     circular SYN 01-JAN-1980
+DEFINITION  pGL3-Basic.
+ACCESSION   pGL3_1
+VERSION     pGL3_1
+KEYWORDS    .
+SOURCE      
+  ORGANISM  .
+            .
+COMMENT     Nucleotide sequence copied unchanged from the uploaded Word
+            document. Backbone feature positions transferred by unique exact
+            nucleotide matches to the supplied 4818-bp pGL3-Basic sequence;
+            feature identities/coordinates based on the source plasmid figure
+            and pGL3-Basic published annotations (Promega TM033; NovoPro
+            V11544). Construct insert annotations from supplied sequence
+            comparison. Restriction recognition motifs are exact sequence
+            matches, not evidence of digestion. Circular topology assumed for
+            plasmid constructs.
+FEATURES             Location/Qualifiers
+     misc_feature    1..6
+                     /label="KpnI site"
+                     /note="GGTACC recognition motif (sequence-confirmed)."
+     misc_feature    1..58
+                     /label="multiple cloning site (MCS)"
+                     /note="Original pGL3-Basic multiple cloning region,
+                     positions 1-58."
+     source          1..4818
+                     /organism="synthetic DNA construct"
+                     /mol_type="other DNA"
+                     /plasmid="pGL3-Basic"
+     misc_feature    7..12
+                     /label="SacI site"
+                     /note="GAGCTC recognition motif (sequence-confirmed)."
+     misc_feature    15..20
+                     /label="MluI site"
+                     /note="ACGCGT recognition motif (sequence-confirmed)."
+     misc_feature    21..26
+                     /label="NheI site"
+                     /note="GCTAGC recognition motif (sequence-confirmed)."
+     misc_feature    26..31
+                     /label="SmaI site"
+                     /note="CCCGGG recognition motif (sequence-confirmed)."
+     misc_feature    32..37
+                     /label="XhoI site"
+                     /note="CTCGAG recognition motif (sequence-confirmed)."
+     misc_feature    36..41
+                     /label="BglII site"
+                     /note="AGATCT recognition motif (sequence-confirmed)."
+     misc_feature    53..58
+                     /label="HindIII site"
+                     /note="AAGCTT recognition motif (sequence-confirmed)."
+     misc_feature    86..91
+                     /label="NcoI site"
+                     /note="CCATGG recognition motif (sequence-confirmed)."
+     CDS             88..1737
+                     /label="luc+ / firefly luciferase"
+                     /note="Firefly luciferase reporter; exact match to
+                     pGL3-Basic reference; luc+ CDS."
+                     /codon_start=1
+                     /product="firefly luciferase"
+     primer_bind     89..111
+                     /label="GLprimer2 binding site"
+                     /note="pGL3 sequencing primer GLprimer2 binding region."
+     misc_feature    120..125
+                     /label="NarI site"
+                     /note="GGCGCC recognition motif (sequence-confirmed)."
+     misc_feature    1742..1747
+                     /label="XbaI site"
+                     /note="TCTAGA recognition motif (sequence-confirmed)."
+     polyA_signal    complement(1781..1902)
+                     /label="SV40 late poly(A) signal"
+                     /note="SV40 polyadenylation signal downstream of luc+
+                     reporter."
+     misc_feature    1900..1905
+                     /label="HpaI site"
+                     /note="GTTAAC recognition motif (sequence-confirmed)."
+     misc_feature    2004..2009
+                     /label="BamHI site"
+                     /note="GGATCC recognition motif (sequence-confirmed)."
+     misc_feature    2010..2015
+                     /label="SalI site"
+                     /note="GTCGAC recognition motif (sequence-confirmed)."
+     primer_bind     complement(2061..2080)
+                     /label="RVprimer4 binding site"
+                     /note="pGL3 sequencing primer RVprimer4, reverse
+                     orientation."
+     rep_origin      complement(2321..2909)
+                     /label="ori (ColE1/pMB1)"
+                     /note="E. coli high-copy-number origin of replication;
+                     reference coordinates transferred by exact sequence match."
+     CDS             complement(3083..3940)
+                     /label="AmpR (bla / beta-lactamase)"
+                     /note="Ampicillin resistance, beta-lactamase;
+                     reverse-strand CDS."
+                     /codon_start=1
+                     /product="beta-lactamase"
+     promoter        complement(3941..4045)
+                     /label="AmpR promoter"
+                     /note="Promoter upstream of the beta-lactamase resistance
+                     marker."
+     rep_origin      4072..4527
+                     /label="f1 ori"
+                     /note="Filamentous phage f1 replication origin; direction
+                     indicates plus-strand synthesis."
+     polyA_signal    4658..4706
+                     /label="synthetic upstream poly(A) signal"
+                     /note="Synthetic upstream poly(A) signal, intended to
+                     reduce background transcription."
+     misc_feature    4720..4811
+                     /label="transcriptional pause site"
+                     /note="Upstream Pol II pause signal from the human alpha-2
+                     globin gene; for background reduction."
+     primer_bind     4760..4779
+                     /label="RVprimer3 binding site"
+                     /note="pGL3 sequencing primer RVprimer3 binding region."
+ORIGIN
+        1 ggtaccgagc tcttacgcgt gctagcccgg gctcgagatc tgcgatctaa gtaagcttgg
+       61 cattccggta ctgttggtaa agccaccatg gaagacgcca aaaacataaa gaaaggcccg
+      121 gcgccattct atccgctgga agatggaacc gctggagagc aactgcataa ggctatgaag
+      181 agatacgccc tggttcctgg aacaattgct tttacagatg cacatatcga ggtggacatc
+      241 acttacgctg agtacttcga aatgtccgtt cggttggcag aagctatgaa acgatatggg
+      301 ctgaatacaa atcacagaat cgtcgtatgc agtgaaaact ctcttcaatt ctttatgccg
+      361 gtgttgggcg cgttatttat cggagttgca gttgcgcccg cgaacgacat ttataatgaa
+      421 cgtgaattgc tcaacagtat gggcatttcg cagcctaccg tggtgttcgt ttccaaaaag
+      481 gggttgcaaa aaattttgaa cgtgcaaaaa aagctcccaa tcatccaaaa aattattatc
+      541 atggattcta aaacggatta ccagggattt cagtcgatgt acacgttcgt cacatctcat
+      601 ctacctcccg gttttaatga atacgatttt gtgccagagt ccttcgatag ggacaagaca
+      661 attgcactga tcatgaactc ctctggatct actggtctgc ctaaaggtgt cgctctgcct
+      721 catagaactg cctgcgtgag attctcgcat gccagagatc ctatttttgg caatcaaatc
+      781 attccggata ctgcgatttt aagtgttgtt ccattccatc acggttttgg aatgtttact
+      841 acactcggat atttgatatg tggatttcga gtcgtcttaa tgtatagatt tgaagaagag
+      901 ctgtttctga ggagccttca ggattacaag attcaaagtg cgctgctggt gccaacccta
+      961 ttctccttct tcgccaaaag cactctgatt gacaaatacg atttatctaa tttacacgaa
+     1021 attgcttctg gtggcgctcc cctctctaag gaagtcgggg aagcggttgc caagaggttc
+     1081 catctgccag gtatcaggca aggatatggg ctcactgaga ctacatcagc tattctgatt
+     1141 acacccgagg gggatgataa accgggcgcg gtcggtaaag ttgttccatt ttttgaagcg
+     1201 aaggttgtgg atctggatac cgggaaaacg ctgggcgtta atcaaagagg cgaactgtgt
+     1261 gtgagaggtc ctatgattat gtccggttat gtaaacaatc cggaagcgac caacgccttg
+     1321 attgacaagg atggatggct acattctgga gacatagctt actgggacga agacgaacac
+     1381 ttcttcatcg ttgaccgcct gaagtctctg attaagtaca aaggctatca ggtggctccc
+     1441 gctgaattgg aatccatctt gctccaacac cccaacatct tcgacgcagg tgtcgcaggt
+     1501 cttcccgacg atgacgccgg tgaacttccc gccgccgttg ttgttttgga gcacggaaag
+     1561 acgatgacgg aaaaagagat cgtggattac gtcgccagtc aagtaacaac cgcgaaaaag
+     1621 ttgcgcggag gagttgtgtt tgtggacgaa gtaccgaaag gtcttaccgg aaaactcgac
+     1681 gcaagaaaaa tcagagagat cctcataaag gccaagaagg gcggaaagat cgccgtgtaa
+     1741 ttctagagtc ggggcggccg gccgcttcga gcagacatga taagatacat tgatgagttt
+     1801 ggacaaacca caactagaat gcagtgaaaa aaatgcttta tttgtgaaat ttgtgatgct
+     1861 attgctttat ttgtaaccat tataagctgc aataaacaag ttaacaacaa caattgcatt
+     1921 cattttatgt ttcaggttca gggggaggtg tgggaggttt tttaaagcaa gtaaaacctc
+     1981 tacaaatgtg gtaaaatcga taaggatccg tcgaccgatg cccttgagag ccttcaaccc
+     2041 agtcagctcc ttccggtggg cgcggggcat gactatcgtc gccgcactta tgactgtctt
+     2101 ctttatcatg caactcgtag gacaggtgcc ggcagcgctc ttccgcttcc tcgctcactg
+     2161 actcgctgcg ctcggtcgtt cggctgcggc gagcggtatc agctcactca aaggcggtaa
+     2221 tacggttatc cacagaatca ggggataacg caggaaagaa catgtgagca aaaggccagc
+     2281 aaaaggccag gaaccgtaaa aaggccgcgt tgctggcgtt tttccatagg ctccgccccc
+     2341 ctgacgagca tcacaaaaat cgacgctcaa gtcagaggtg gcgaaacccg acaggactat
+     2401 aaagatacca ggcgtttccc cctggaagct ccctcgtgcg ctctcctgtt ccgaccctgc
+     2461 cgcttaccgg atacctgtcc gcctttctcc cttcgggaag cgtggcgctt tctcaatgct
+     2521 cacgctgtag gtatctcagt tcggtgtagg tcgttcgctc caagctgggc tgtgtgcacg
+     2581 aaccccccgt tcagcccgac cgctgcgcct tatccggtaa ctatcgtctt gagtccaacc
+     2641 cggtaagaca cgacttatcg ccactggcag cagccactgg taacaggatt agcagagcga
+     2701 ggtatgtagg cggtgctaca gagttcttga agtggtggcc taactacggc tacactagaa
+     2761 ggacagtatt tggtatctgc gctctgctga agccagttac cttcggaaaa agagttggta
+     2821 gctcttgatc cggcaaacaa accaccgctg gtagcggtgg tttttttgtt tgcaagcagc
+     2881 agattacgcg cagaaaaaaa ggatctcaag aagatccttt gatcttttct acggggtctg
+     2941 acgctcagtg gaacgaaaac tcacgttaag ggattttggt catgagatta tcaaaaagga
+     3001 tcttcaccta gatcctttta aattaaaaat gaagttttaa atcaatctaa agtatatatg
+     3061 agtaaacttg gtctgacagt taccaatgct taatcagtga ggcacctatc tcagcgatct
+     3121 gtctatttcg ttcatccata gttgcctgac tccccgtcgt gtagataact acgatacggg
+     3181 agggcttacc atctggcccc agtgctgcaa tgataccgcg agacccacgc tcaccggctc
+     3241 cagatttatc agcaataaac cagccagccg gaagggccga gcgcagaagt ggtcctgcaa
+     3301 ctttatccgc ctccatccag tctattaatt gttgccggga agctagagta agtagttcgc
+     3361 cagttaatag tttgcgcaac gttgttgcca ttgctacagg catcgtggtg tcacgctcgt
+     3421 cgtttggtat ggcttcattc agctccggtt cccaacgatc aaggcgagtt acatgatccc
+     3481 ccatgttgtg caaaaaagcg gttagctcct tcggtcctcc gatcgttgtc agaagtaagt
+     3541 tggccgcagt gttatcactc atggttatgg cagcactgca taattctctt actgtcatgc
+     3601 catccgtaag atgcttttct gtgactggtg agtactcaac caagtcattc tgagaatagt
+     3661 gtatgcggcg accgagttgc tcttgcccgg cgtcaatacg ggataatacc gcgccacata
+     3721 gcagaacttt aaaagtgctc atcattggaa aacgttcttc ggggcgaaaa ctctcaagga
+     3781 tcttaccgct gttgagatcc agttcgatgt aacccactcg tgcacccaac tgatcttcag
+     3841 catcttttac tttcaccagc gtttctgggt gagcaaaaac aggaaggcaa aatgccgcaa
+     3901 aaaagggaat aagggcgaca cggaaatgtt gaatactcat actcttcctt tttcaatatt
+     3961 attgaagcat ttatcagggt tattgtctca tgagcggata catatttgaa tgtatttaga
+     4021 aaaataaaca aataggggtt ccgcgcacat ttccccgaaa agtgccacct gacgcgccct
+     4081 gtagcggcgc attaagcgcg gcgggtgtgg tggttacgcg cagcgtgacc gctacacttg
+     4141 ccagcgccct agcgcccgct cctttcgctt tcttcccttc ctttctcgcc acgttcgccg
+     4201 gctttccccg tcaagctcta aatcgggggc tccctttagg gttccgattt agtgctttac
+     4261 ggcacctcga ccccaaaaaa cttgattagg gtgatggttc acgtagtggg ccatcgccct
+     4321 gatagacggt ttttcgccct ttgacgttgg agtccacgtt ctttaatagt ggactcttgt
+     4381 tccaaactgg aacaacactc aaccctatct cggtctattc ttttgattta taagggattt
+     4441 tgccgatttc ggcctattgg ttaaaaaatg agctgattta acaaaaattt aacgcgaatt
+     4501 ttaacaaaat attaacgttt acaatttccc attcgccatt caggctgcgc aactgttggg
+     4561 aagggcgatc ggtgcgggcc tcttcgctat tacgccagcc caagctacca tgataagtaa
+     4621 gtaatattaa ggtacgggag gtacttggag cggccgcaat aaaatatctt tattttcatt
+     4681 acatctgtgt gttggttttt tgtgtgaatc gatagtacta acatacgctc tccatcaaaa
+     4741 caaaacgaaa caaaacaaac tagcaaaata ggctgtcccc agtgcaagtg caggtgccag
+     4801 aacatttctc tatcgata
+//
